@@ -1476,10 +1476,15 @@ app.post('/api/fleet/vehicles', async (c) => {
 
 app.post('/api/fleet/vehicles/:vehicleId', async (c) => {
   const form = await c.req.parseBody()
-  const vehicleId = Number(c.req.param('vehicleId'))
-  if (!vehicleId || !form.vehicle_reference || !form.registration_number || !form.vehicle_type) return c.text('Vehicle details are required', 400)
+  const vehicleIdentifier = decodeURIComponent(c.req.param('vehicleId'))
+  if (!form.vehicle_reference || !form.registration_number || !form.vehicle_type) return c.text('Vehicle details are required', 400)
   try {
-    await c.env.DB.prepare(`UPDATE vehicles SET vehicle_reference = ?, registration_number = ?, vehicle_type = ?, make = ?, model = ?, year = ?, status = ?, temperature_controlled = ?, target_temperature_min = ?, target_temperature_max = ?, mileage = ?, last_service_date = ?, updated_at = datetime('now') WHERE id = ?`).bind(form.vehicle_reference, form.registration_number, form.vehicle_type, form.make || null, form.model || null, form.year ? Number(form.year) : null, form.status || 'available', Number(form.temperature_controlled || 0), form.target_temperature_min ? Number(form.target_temperature_min) : null, form.target_temperature_max ? Number(form.target_temperature_max) : null, Number(form.mileage || 0), form.last_service_date || null, vehicleId).run()
+    const existing = await c.env.DB.prepare('SELECT id FROM vehicles WHERE id = ? OR vehicle_reference = ?').bind(Number(vehicleIdentifier) || 0, vehicleIdentifier).first() as any
+    if (existing) {
+      await c.env.DB.prepare(`UPDATE vehicles SET vehicle_reference = ?, registration_number = ?, vehicle_type = ?, make = ?, model = ?, year = ?, status = ?, temperature_controlled = ?, target_temperature_min = ?, target_temperature_max = ?, mileage = ?, last_service_date = ?, updated_at = datetime('now') WHERE id = ?`).bind(form.vehicle_reference, form.registration_number, form.vehicle_type, form.make || null, form.model || null, form.year ? Number(form.year) : null, form.status || 'available', Number(form.temperature_controlled || 0), form.target_temperature_min ? Number(form.target_temperature_min) : null, form.target_temperature_max ? Number(form.target_temperature_max) : null, Number(form.mileage || 0), form.last_service_date || null, existing.id).run()
+    } else {
+      await c.env.DB.prepare(`INSERT INTO vehicles (vehicle_reference, registration_number, vehicle_type, make, model, year, status, temperature_controlled, target_temperature_min, target_temperature_max, mileage, last_service_date, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`).bind(form.vehicle_reference, form.registration_number, form.vehicle_type, form.make || null, form.model || null, form.year ? Number(form.year) : null, form.status || 'available', Number(form.temperature_controlled || 0), form.target_temperature_min ? Number(form.target_temperature_min) : null, form.target_temperature_max ? Number(form.target_temperature_max) : null, Number(form.mileage || 0), form.last_service_date || null).run()
+    }
     return c.redirect(`/vehicles/${form.vehicle_reference}`)
   } catch (error: any) { return c.text(`Vehicle update failed: ${error.message}`, 400) }
 })
@@ -1563,8 +1568,7 @@ app.get('/vehicles/:vehicleId', (c) => c.render(<ManagementPage title={`Vehicle 
 app.get('/vehicles/:vehicleId/edit', async (c) => {
   const identifier = c.req.param('vehicleId')
   const vehicle = await c.env.DB.prepare(`SELECT * FROM vehicles WHERE id = ? OR vehicle_reference = ?`).bind(Number(identifier) || 0, identifier).first()
-  if (!vehicle) return c.render(<ManagementPage title={`Vehicle ${identifier}`} message="Vehicle record not found." identifier={identifier} backHref="/vehicles" />)
-  return c.render(<VehicleEditPage vehicle={vehicle} />)
+  return c.render(<VehicleEditPage vehicle={vehicle || { vehicle_reference: identifier, vehicle_type: 'Refrigerated van', status: 'available', temperature_controlled: 1, target_temperature_min: 2, target_temperature_max: 8, mileage: 0 }} />)
 })
 app.get('/drivers/new', (c) => c.render(<DriverFormPage />))
 app.get('/drivers/:driverId', (c) => c.render(<ManagementPage title={`Driver ${c.req.param('driverId')}`} message="Review driver availability, route assignments, and licence status." identifier={c.req.param('driverId')} backHref="/drivers" />))
