@@ -1515,6 +1515,18 @@ app.post('/api/fleet/customers', async (c) => {
 })
 
 app.post('/api/fleet/routes', async (c) => {
+
+  app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
+    const routeId = Number(c.req.param('routeId'))
+    const form = await c.req.parseBody()
+    const deliveryTime = String(form.actual_arrival || '').trim()
+    if (!routeId || !deliveryTime) return c.text('Delivery timestamp is required', 400)
+    try {
+      await c.env.DB.prepare(`UPDATE fleet_routes SET status = 'delivered', progress_percent = 100, actual_arrival = ?, updated_at = datetime('now') WHERE id = ?`).bind(deliveryTime, routeId).run()
+      await c.env.DB.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_from, status_to, notes, recorded_at) SELECT id, 'delivered', status, 'delivered', ?, datetime('now') FROM fleet_routes WHERE id = ?`).bind(`${form.notes || ''}${form.proof_reference ? ` POD: ${form.proof_reference}` : ''}`, routeId).run()
+      return c.redirect(`/deliveries/${routeId}`)
+    } catch (error: any) { return c.text(`Delivery update failed: ${error.message}`, 400) }
+  })
   const form = await c.req.parseBody()
   const required = ['route_reference', 'origin', 'destination', 'scheduled_departure']
   if (required.some(field => !String(form[field] || '').trim())) return c.text('Route reference, origin, destination, and departure are required', 400)
@@ -1560,6 +1572,11 @@ app.get('/customers', (c) => c.render(<CustomersPage />))
 app.get('/routes/scan', (c) => c.render(<RouteScanPage />))
 app.get('/routes/new', (c) => c.render(<RouteFormPage />))
 app.get('/routes/:routeId', (c) => c.render(<RouteDetailPage routeId={c.req.param('routeId')} />))
+app.get('/deliveries/:routeId', async (c) => {
+  const routeId = Number(c.req.param('routeId'))
+  const route = await c.env.DB.prepare(`SELECT r.*, d.driver_reference, u_driver.full_name AS driver_name, v.vehicle_reference, v.current_temperature, u_customer.full_name AS customer_name FROM fleet_routes r LEFT JOIN drivers d ON d.id = r.driver_id LEFT JOIN users u_driver ON u_driver.id = d.user_id LEFT JOIN vehicles v ON v.id = r.vehicle_id LEFT JOIN users u_customer ON u_customer.id = r.customer_id WHERE r.id = ?`).bind(routeId).first()
+  return c.render(<DeliveryPage route={route || { id: routeId, route_reference: `Route ${routeId}`, origin: 'Origin', destination: 'Destination', status: 'planned' }} />)
+})
 app.get('/traffic', (c) => c.render(<TrafficPage />))
 app.get('/profile', (c) => c.render(<ProfilePage />))
 app.get('/monitoring/export', (c) => c.render(<MonitoringExportPage />))

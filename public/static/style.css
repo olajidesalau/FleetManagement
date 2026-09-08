@@ -224,6 +224,18 @@ h2 { margin: 0; font-size: 21px; }
 .timeline small { color: var(--muted); font-size: 10px; }
 .detail-actions { display: grid; gap: 10px; padding: 0 25px 25px; }
 .detail-actions .button { text-align: center; }
+.delivery-time { color: var(--teal); }
+.delivery-form-panel { padding: 25px; }
+.delivery-form { display: grid; gap: 17px; }
+.delivery-form label { display: grid; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.delivery-form input, .delivery-form textarea { min-height: 42px; padding: 10px; border: 1px solid var(--line); font-family: inherit; }
+.delivery-form textarea { min-height: 100px; resize: vertical; }
+.delivery-form .button { width: fit-content; border: 0; cursor: pointer; }
+.delivery-confirmed { display: flex; align-items: center; gap: 20px; padding: 30px; background: var(--teal-soft); }
+.delivery-confirmed h2 { margin: 0 0 8px; }
+.delivery-confirmed p:not(.eyebrow) { margin: 0 0 6px; color: #52666a; font-size: 13px; }
+.delivery-confirmed span:last-child { color: var(--muted); font-size: 11px; }
+.delivery-check { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: #43aa84; color: white; font-size: 26px; }
 .management-placeholder { display: grid; gap: 8px; padding: 30px 25px; border-top: 1px solid #edf1f1; color: var(--muted); font-size: 12px; }
 .management-placeholder strong { color: var(--ink); font-size: 14px; }
 .form-panel { padding: 25px; }
