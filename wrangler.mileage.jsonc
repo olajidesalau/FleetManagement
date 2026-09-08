@@ -1,11 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "snow-fleet-management",
+  "name": "snow-fleet-mileage-scheduler",
+  "main": "dist/_worker.js",
   "compatibility_date": "2026-01-18",
-  "pages_build_output_dir": "./dist",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["0 2 * * *"]
+  },
   "d1_databases": [
     {
       "binding": "DB",

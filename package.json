@@ -12,6 +12,7 @@
     "deploy": "npm run build && wrangler pages deploy dist",
     "deploy:prod": "npm run deploy:fleet",
     "deploy:fleet": "npm run build && powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/deploy-fleet.ps1",
+    "deploy:mileage-scheduler": "npm run build && wrangler deploy --config wrangler.mileage.jsonc",
     "configure:traffic": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/configure-traffic-secrets.ps1",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "clean-port": "fuser -k 3000/tcp 2>/dev/null || true",
