@@ -407,6 +407,35 @@
       loadProfile();
     }
 
+    const temperaturePage = document.querySelector('[data-temperature-page]');
+    if (temperaturePage) {
+      const rows = temperaturePage.querySelector('[data-temperature-rows]');
+      const updated = temperaturePage.querySelector('[data-temperature-updated]');
+      const refreshButton = temperaturePage.querySelector('[data-temperature-refresh]');
+      const renderTemperatures = async () => {
+        refreshButton.disabled = true;
+        try {
+          const response = await fetch('/api/fleet/temperature');
+          if (!response.ok) throw new Error('Temperature readings unavailable');
+          const payload = await response.json();
+          const readings = payload.readings || [];
+          const within = readings.filter(reading => Number(reading.current_temperature) >= Number(reading.target_temperature_min ?? 2) && Number(reading.current_temperature) <= Number(reading.target_temperature_max ?? 8));
+          const alerts = readings.length - within.length;
+          const average = readings.length ? (readings.reduce((total, reading) => total + Number(reading.current_temperature || 0), 0) / readings.length).toFixed(1) : '--';
+          temperaturePage.querySelector('[data-temperature-within]').textContent = `${within.length} / ${readings.length}`;
+          temperaturePage.querySelector('[data-temperature-alerts]').textContent = alerts;
+          temperaturePage.querySelector('[data-temperature-average]').textContent = average === '--' ? '--' : `${average} C`;
+          temperaturePage.querySelector('[data-temperature-online]').textContent = readings.length;
+          rows.innerHTML = readings.map(reading => { const temp = Number(reading.current_temperature); const min = Number(reading.target_temperature_min ?? 2); const max = Number(reading.target_temperature_max ?? 8); const ok = temp >= min && temp <= max; return `<tr><td><strong class="table-id">${reading.vehicle_reference}</strong><span>Temperature-controlled vehicle</span></td><td>${reading.driver_name || 'Unassigned'}</td><td><strong class="${ok ? 'text-good' : 'text-alert'}">${temp.toFixed(1)} C</strong><span>${ok ? 'Within range' : 'Outside target range'}</span></td><td>${min} C to ${max} C</td><td><span class="pill pill-green">${reading.sensor_status || 'online'}</span></td><td><span class="pill ${ok ? 'pill-green' : 'pill-red'}">${ok ? 'Normal' : 'Alert'}</span></td></tr>` }).join('');
+          updated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        } catch { rows.innerHTML = '<tr><td colspan="6" class="table-loading">Temperature readings are temporarily unavailable.</td></tr>'; updated.textContent = 'Monitor unavailable'; }
+        finally { refreshButton.disabled = false; }
+      };
+      refreshButton.addEventListener('click', renderTemperatures);
+      renderTemperatures();
+      window.setInterval(renderTemperatures, 600000);
+    }
+
     // Conversation message form handlers (AJAX)
     const convForms = document.querySelectorAll('form[data-conversation-form]');
     convForms.forEach(f => {
