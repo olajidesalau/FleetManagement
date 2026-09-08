@@ -1515,26 +1515,6 @@ app.post('/api/fleet/customers', async (c) => {
 })
 
 app.post('/api/fleet/routes', async (c) => {
-
-  app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
-    const routeId = Number(c.req.param('routeId'))
-    const form = await c.req.parseBody()
-    const deliveryTime = String(form.actual_arrival || '').trim()
-    if (!routeId || !deliveryTime) return c.text('Delivery timestamp is required', 400)
-    const proofPhoto = form.proof_photo as File | undefined
-    if (!proofPhoto || typeof proofPhoto.arrayBuffer !== 'function') return c.text('An electronic proof photo is required', 400)
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(proofPhoto.type)) return c.text('Proof photo must be JPEG, PNG, or WebP', 400)
-    if (proofPhoto.size > 2 * 1024 * 1024) return c.text('Proof photo must be 2 MB or smaller', 400)
-    try {
-      const proofBytes = new Uint8Array(await proofPhoto.arrayBuffer())
-      let binary = ''
-      for (const byte of proofBytes) binary += String.fromCharCode(byte)
-      const proofData = `data:${proofPhoto.type};base64,${btoa(binary)}`
-      await c.env.DB.prepare(`UPDATE fleet_routes SET status = 'delivered', progress_percent = 100, actual_arrival = ?, updated_at = datetime('now') WHERE id = ?`).bind(deliveryTime, routeId).run()
-      await c.env.DB.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_from, status_to, notes, proof_photo_data, proof_photo_name, proof_photo_type, recorded_at) SELECT id, 'delivered', status, 'delivered', ?, ?, ?, ?, datetime('now') FROM fleet_routes WHERE id = ?`).bind(`${form.notes || ''}${form.proof_reference ? ` POD: ${form.proof_reference}` : ''}`, proofData, proofPhoto.name, proofPhoto.type, routeId).run()
-      return c.redirect(`/deliveries/${routeId}`)
-    } catch (error: any) { return c.text(`Delivery update failed: ${error.message}`, 400) }
-  })
   const form = await c.req.parseBody()
   const required = ['route_reference', 'origin', 'destination', 'scheduled_departure']
   if (required.some(field => !String(form[field] || '').trim())) return c.text('Route reference, origin, destination, and departure are required', 400)
@@ -1543,6 +1523,26 @@ app.post('/api/fleet/routes', async (c) => {
     await c.env.DB.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_to, notes) VALUES (?, 'created', 'planned', ?)`).bind(result.meta.last_row_id, `Route ${form.route_reference} created through fleet portal`).run()
     return c.redirect('/routes')
   } catch (error: any) { return c.text(`Route allocation failed: ${error.message}`, 400) }
+})
+
+app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
+  const routeId = Number(c.req.param('routeId'))
+  const form = await c.req.parseBody()
+  const deliveryTime = String(form.actual_arrival || '').trim()
+  if (!routeId || !deliveryTime) return c.text('Delivery timestamp is required', 400)
+  const proofPhoto = form.proof_photo as File | undefined
+  if (!proofPhoto || typeof proofPhoto.arrayBuffer !== 'function') return c.text('An electronic proof photo is required', 400)
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(proofPhoto.type)) return c.text('Proof photo must be JPEG, PNG, or WebP', 400)
+  if (proofPhoto.size > 2 * 1024 * 1024) return c.text('Proof photo must be 2 MB or smaller', 400)
+  try {
+    const proofBytes = new Uint8Array(await proofPhoto.arrayBuffer())
+    let binary = ''
+    for (const byte of proofBytes) binary += String.fromCharCode(byte)
+    const proofData = `data:${proofPhoto.type};base64,${btoa(binary)}`
+    await c.env.DB.prepare(`UPDATE fleet_routes SET status = 'delivered', progress_percent = 100, actual_arrival = ?, updated_at = datetime('now') WHERE id = ?`).bind(deliveryTime, routeId).run()
+    await c.env.DB.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_from, status_to, notes, proof_photo_data, proof_photo_name, proof_photo_type, recorded_at) SELECT id, 'delivered', status, 'delivered', ?, ?, ?, ?, datetime('now') FROM fleet_routes WHERE id = ?`).bind(`${form.notes || ''}${form.proof_reference ? ` POD: ${form.proof_reference}` : ''}`, proofData, proofPhoto.name, proofPhoto.type, routeId).run()
+    return c.redirect(`/deliveries/${routeId}`)
+  } catch (error: any) { return c.text(`Delivery update failed: ${error.message}`, 400) }
 })
 
 // HTML form handlers for the admin pages. These mirror the JSON APIs and remain admin-only.
