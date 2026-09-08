@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Compiled binary addons
+build
+dist
+
+# dotenv environment variables file
+.env
+.dev.vars
+
+# PM2
+.pm2/
+pids/
+logs/
+*.log
+
+# Backup files
+*.backup
+*.bak
+*.tar.gz
+*.zip
+
+# Wrangler
+.wrangler/
+wrangler.toml.backup
+
+# OS
+.DS_Store
+Thumbs.db
+dist/
+.env.*
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+*.csr
+*.pfx
+*.p12
+*.secret
+*.secrets
+secrets/
