@@ -1552,11 +1552,33 @@ app.get('/alerts/traffic', (c) => c.render(<TrafficPage />))
 app.get('/alerts/vehicle', (c) => c.render(<VehiclesPage />))
 app.get('/bookings/:bookingId', (c) => c.render(<BookingsPage bookings={[]} />))
 app.get('/notifications', (c) => c.render(<NotificationsPage notifications={[]} />))
-app.get('/admin/dashboard', (c) => c.render(<AdminDashboardPage />))
-app.get('/admin/users', (c) => c.render(<AdminUsersPage users={[]} />))
-app.get('/admin/providers', (c) => c.render(<AdminProvidersPage providers={[]} />))
-app.get('/admin/bookings', (c) => c.render(<AdminBookingsPage bookings={[]} />))
-app.get('/admin/stats', (c) => c.render(<AdminDashboardPage />))
+app.get('/admin/dashboard', authenticate, requireRole('admin'), async (c) => {
+  const [users, providers, pending, bookings, completed, revenue] = await Promise.all([
+    c.env.DB.prepare('SELECT COUNT(*) AS count FROM users').first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM provider_profiles WHERE approval_status = 'approved'").first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM provider_profiles WHERE approval_status = 'pending'").first(),
+    c.env.DB.prepare('SELECT COUNT(*) AS count FROM bookings').first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM bookings WHERE status = 'completed'").first(),
+    c.env.DB.prepare("SELECT COALESCE(SUM(platform_fee), 0) AS total FROM bookings WHERE status = 'completed'").first()
+  ])
+  return c.render(<AdminDashboardPage stats={{ total_users: (users as any)?.count, approved_providers: (providers as any)?.count, pending_approvals: (pending as any)?.count, total_bookings: (bookings as any)?.count, completed_bookings: (completed as any)?.count, platform_revenue: (revenue as any)?.total }} />)
+})
+app.get('/admin/users', authenticate, requireRole('admin'), async (c) => {
+  const search = c.req.query('search') || ''
+  const role = c.req.query('role') || ''
+  const status = c.req.query('status') || ''
+  const users = await c.env.DB.prepare(`SELECT id, email, full_name, phone, role, status, created_at FROM users WHERE (? = '' OR full_name LIKE '%' || ? || '%' OR email LIKE '%' || ? || '%') AND (? = '' OR role = ?) AND (? = '' OR status = ?) ORDER BY created_at DESC LIMIT 200`).bind(search, search, search, role, role, status, status).all()
+  return c.render(<AdminUsersPage users={users.results} />)
+})
+app.get('/admin/providers', authenticate, requireRole('admin'), async (c) => {
+  const providers = await c.env.DB.prepare(`SELECT p.*, u.full_name, u.email, u.phone FROM provider_profiles p JOIN users u ON u.id = p.user_id ORDER BY p.created_at DESC LIMIT 200`).all()
+  return c.render(<AdminProvidersPage providers={providers.results} />)
+})
+app.get('/admin/bookings', authenticate, requireRole('admin'), async (c) => {
+  const bookings = await c.env.DB.prepare(`SELECT b.*, s.service_name, u.full_name AS customer_name FROM bookings b LEFT JOIN services s ON s.id = b.service_id LEFT JOIN users u ON u.id = b.customer_id ORDER BY b.created_at DESC LIMIT 200`).all()
+  return c.render(<AdminBookingsPage bookings={bookings.results} />)
+})
+app.get('/admin/stats', authenticate, requireRole('admin'), async (c) => c.redirect('/admin/dashboard'))
 
 
 
