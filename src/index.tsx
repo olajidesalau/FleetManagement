@@ -85,6 +85,19 @@ async function authenticate(c: any, next: any) {
   await next()
 }
 
+async function updateNightlyMileage(db: D1Database) {
+  try { await db.prepare(`ALTER TABLE fleet_routes ADD COLUMN mileage_applied_at DATETIME`).run() } catch {}
+  const routes = await db.prepare(`SELECT id, vehicle_id, distance_miles FROM fleet_routes WHERE status = 'delivered' AND mileage_applied_at IS NULL AND vehicle_id IS NOT NULL AND COALESCE(distance_miles, 0) > 0`).all()
+  let processed = 0
+  for (const route of routes.results as any[]) {
+    await db.prepare(`UPDATE vehicles SET mileage = COALESCE(mileage, 0) + ?, updated_at = datetime('now') WHERE id = ?`).bind(Number(route.distance_miles), route.vehicle_id).run()
+    await db.prepare(`UPDATE fleet_routes SET mileage_applied_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`).bind(route.id).run()
+    await db.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_to, notes, recorded_at) VALUES (?, 'checkpoint', 'delivered', ?, datetime('now'))`).bind(route.id, `Nightly mileage update applied: ${route.distance_miles} miles`).run()
+    processed += 1
+  }
+  return { processed }
+}
+
 // Middleware: Check if user has specific role
 function requireRole(...roles: string[]) {
   return async (c: any, next: any) => {
@@ -1508,6 +1521,15 @@ app.get('/api/fleet/monitoring/export', async (c) => {
   return new Response(csv, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="snow-fleet-monitoring-${range}d.csv"` } })
 })
 
+app.post('/api/fleet/mileage/nightly', authenticate, requireRole('admin'), async (c) => {
+  try {
+    const result = await updateNightlyMileage(c.env.DB)
+    return c.json({ success: true, ...result })
+  } catch (error: any) {
+    return c.json({ error: 'Nightly mileage update failed: ' + error.message }, 500)
+  }
+})
+
 // Fleet creation workflows use native form posts so they work with or without client JavaScript.
 app.post('/api/fleet/vehicles', async (c) => {
   const form = await c.req.parseBody()
@@ -1592,6 +1614,7 @@ app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
   if (proofPhoto.size > 2 * 1024 * 1024) return c.text('Proof photo must be 2 MB or smaller', 400)
   try {
     // Keep delivery capture compatible while remote D1 migrations are catching up.
+    try { await c.env.DB.prepare(`ALTER TABLE fleet_routes ADD COLUMN mileage_applied_at DATETIME`).run() } catch {}
     for (const column of ['proof_photo_data', 'proof_photo_name', 'proof_photo_type']) {
       try { await c.env.DB.prepare(`ALTER TABLE route_activity_history ADD COLUMN ${column} TEXT`).run() } catch {}
     }
@@ -1600,7 +1623,7 @@ app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
     for (const byte of proofBytes) binary += String.fromCharCode(byte)
     const proofData = `data:${proofPhoto.type};base64,${btoa(binary)}`
     const route = await c.env.DB.prepare(`SELECT vehicle_id, distance_miles FROM fleet_routes WHERE id = ?`).bind(routeId).first() as any
-    await c.env.DB.prepare(`UPDATE fleet_routes SET status = 'delivered', progress_percent = 100, actual_arrival = ?, distance_miles = ?, updated_at = datetime('now') WHERE id = ?`).bind(deliveryTime, milesTravelled, routeId).run()
+    await c.env.DB.prepare(`UPDATE fleet_routes SET status = 'delivered', progress_percent = 100, actual_arrival = ?, distance_miles = ?, mileage_applied_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`).bind(deliveryTime, milesTravelled, routeId).run()
     if (route?.vehicle_id) await c.env.DB.prepare(`UPDATE vehicles SET mileage = COALESCE(mileage, 0) + ?, updated_at = datetime('now') WHERE id = ?`).bind(milesTravelled, route.vehicle_id).run()
     await c.env.DB.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_from, status_to, notes, proof_photo_data, proof_photo_name, proof_photo_type, recorded_at) SELECT id, 'delivered', status, 'delivered', ?, ?, ?, ?, datetime('now') FROM fleet_routes WHERE id = ?`).bind(`${form.notes || ''}${form.proof_reference ? ` POD: ${form.proof_reference}` : ''}`, proofData, proofPhoto.name, proofPhoto.type, routeId).run()
     return c.redirect(`/deliveries/${routeId}`)
@@ -2034,4 +2057,9 @@ app.get('/reviews/create', authenticate, async (c) => {
   }
 })
 
-export default app
+export default {
+  fetch: app.fetch,
+  async scheduled(_event: ScheduledEvent, env: HonoEnv['Bindings']) {
+    await updateNightlyMileage(env.DB)
+  }
+}
