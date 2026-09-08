@@ -1540,6 +1540,10 @@ app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(proofPhoto.type)) return c.text('Proof photo must be JPEG, PNG, or WebP', 400)
   if (proofPhoto.size > 2 * 1024 * 1024) return c.text('Proof photo must be 2 MB or smaller', 400)
   try {
+    // Keep delivery capture compatible while remote D1 migrations are catching up.
+    for (const column of ['proof_photo_data', 'proof_photo_name', 'proof_photo_type']) {
+      try { await c.env.DB.prepare(`ALTER TABLE route_activity_history ADD COLUMN ${column} TEXT`).run() } catch {}
+    }
     const proofBytes = new Uint8Array(await proofPhoto.arrayBuffer())
     let binary = ''
     for (const byte of proofBytes) binary += String.fromCharCode(byte)
