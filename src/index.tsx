@@ -1756,6 +1756,21 @@ app.get('/messages', authenticate, async (c) => {
   }
 })
 
+app.get('/messages/new', authenticate, async (c) => {
+  try {
+    const user = c.get('user') as any
+    const receiverId = Number(c.req.query('to'))
+    if (!receiverId || receiverId === Number(user.userId)) return c.redirect('/messages')
+    const otherUser = await c.env.DB.prepare('SELECT id, full_name, email, role FROM users WHERE id = ? AND status = ?').bind(receiverId, 'active').first()
+    if (!otherUser) return c.redirect('/messages')
+    const conversationId = [Number(user.userId), receiverId].sort((left, right) => left - right).join('-')
+    const messages = await c.env.DB.prepare(`SELECT m.*, u.full_name AS sender_name FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.conversation_id = ? ORDER BY m.created_at ASC`).bind(conversationId).all()
+    return c.render(<ConversationPage conversation={{ conversation_id: conversationId, other_user: otherUser }} messages={messages.results} />)
+  } catch {
+    return c.redirect('/messages')
+  }
+})
+
 // Conversation page
 app.get('/messages/conversation/:conversationId', authenticate, async (c) => {
   try {

@@ -1,11 +1,11 @@
 export const ConversationPage = ({ conversation = {}, messages = [] }: { conversation?: any, messages?: any[] } = {}) => {
   const other = conversation.other_user || { full_name: 'Conversation' }
   return (
-    <div style="padding:2rem; min-height:100vh; background:#f5f5f5;">
+    <div class="fleet-dashboard conversation-page">
       <div style="max-width:900px; margin:0 auto;">
-        <h1>💬 Conversation with {other.full_name}</h1>
+        <div class="page-heading"><div><p class="eyebrow">Profile messaging</p><h1>Conversation with {other.full_name}</h1><p class="header-copy">Send a message securely to this profile.</p></div><a class="button button-secondary" href="/messages">← Messages</a></div>
 
-        <div style="background:white; padding:1rem; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.05); margin-top:1rem;">
+        <div class="panel conversation-card">
           <div style="max-height:500px; overflow-y:auto; padding:0.5rem;">
             {messages.length === 0 ? (
               <p style="color:#666; text-align:center; padding:2rem;">No messages yet. Say hello!</p>

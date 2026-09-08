@@ -6,7 +6,7 @@ export const MessagesPage = ({ conversations = [] }: { conversations?: any[] } =
 
         {conversations.length === 0 ? (
           <div style="background: white; padding: 2rem; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <p style="font-size: 1.1rem; color: #666;">No messages yet. Start a conversation with a provider!</p>
+            <p style="font-size: 1.1rem; color: #666;">No messages yet. Open a profile and choose Message to start a conversation.</p>
           </div>
         ) : (
           <div style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem;">
@@ -34,15 +34,7 @@ export const MessagesPage = ({ conversations = [] }: { conversations?: any[] } =
 
               {/* Message Input */}
               <div style="padding: 1.5rem; border-top: 1px solid #eee;">
-                <form method="post" action="/api/messages" style="display: flex; gap: 0.5rem;">
-                  <input 
-                    type="text" 
-                    name="message" 
-                    placeholder="Type a message..." 
-                    style="flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"
-                  />
-                  <button type="submit" style="background: #4db8ff; color: black; padding: 0.5rem 1rem; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">Send</button>
-                </form>
+                <a href="/providers/search" style="display: inline-block; background: #4db8ff; color: black; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Find a profile to message</a>
               </div>
             </div>
           </div>

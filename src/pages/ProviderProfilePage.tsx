@@ -42,7 +42,7 @@ export const ProviderProfilePage = ({ provider = {}, services = [] }: { provider
               )}
 
               <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                <a href={`/messages?provider=${provider.user_id}`} style="background: #4db8ff; color: black; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Message Provider</a>
+                <a href={`/messages/new?to=${provider.user_id}`} style="background: #4db8ff; color: black; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Message Provider</a>
                 {provider.dbs_verified && <span style="background: #4caf50; color: white; padding: 0.75rem 1rem; border-radius: 4px; font-weight: bold;">✓ DBS Verified</span>}
                 {provider.insurance_verified && <span style="background: #4caf50; color: white; padding: 0.75rem 1rem; border-radius: 4px; font-weight: bold;">✓ Insured</span>}
               </div>

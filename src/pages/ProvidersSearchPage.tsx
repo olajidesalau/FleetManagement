@@ -63,7 +63,7 @@ export const ProvidersSearchPage = ({ providers = [] }: { providers?: any[] } = 
                   <p style="margin: 0.5rem 0; font-size: 0.9rem; color: #666;">{provider.bio || 'No bio provided'}</p>
                   <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                     <a href={`/providers/${provider.user_id}`} style="flex: 1; background: #4db8ff; color: black; padding: 0.5rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">View Profile</a>
-                    <a href={`/messages?provider=${provider.user_id}`} style="flex: 1; background: #f0f0f0; color: black; padding: 0.5rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">Message</a>
+                    <a href={`/messages/new?to=${provider.user_id}`} style="flex: 1; background: #f0f0f0; color: black; padding: 0.5rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">Message</a>
                   </div>
                 </div>
               ))}
