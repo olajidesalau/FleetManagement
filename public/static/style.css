@@ -240,6 +240,14 @@ h2 { margin: 0; font-size: 21px; }
 .proof-photo { display: block; width: min(100%, 360px); max-height: 260px; margin-top: 18px; object-fit: cover; border: 1px solid var(--line); }
 .management-placeholder { display: grid; gap: 8px; padding: 30px 25px; border-top: 1px solid #edf1f1; color: var(--muted); font-size: 12px; }
 .management-placeholder strong { color: var(--ink); font-size: 14px; }
+.export-panel { padding: 25px; }
+.export-form { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 14px; }
+.export-form label { display: grid; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.export-form select { min-height: 42px; padding: 0 10px; border: 1px solid var(--line); background: white; font-family: inherit; }
+.export-form .button { border: 0; cursor: pointer; }
+.export-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.export-options b { padding: 6px 9px; background: var(--teal-soft); color: var(--teal); font-weight: 600; }
+@media (max-width: 560px) { .export-panel { padding: 16px; } .export-form { grid-template-columns: 1fr; } }
 .form-panel { padding: 25px; }
 .fleet-form { display: grid; gap: 24px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
