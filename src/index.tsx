@@ -1480,7 +1480,28 @@ app.get('/api/fleet/monitoring/export', async (c) => {
   const report = { generated_at: new Date().toISOString(), range_days: range, on_time_delivery: '96.4%', temperature_compliance: '98.7%', average_route_time: '3h 42m', driver_acceptance: '89%', active_routes: 24, temperature_alerts: 2 }
   if (format === 'json') return c.json(report)
   if (format === 'pdf') {
-    const pdf = `%PDF-1.4\n1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj\n2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj\n3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>endobj\n4 0 obj<< /Length 180 >>stream\nBT /F1 18 Tf 72 720 Td (Snow Fleet Management Monitoring Report) Tj /F1 11 Tf 0 -28 Td (On-time delivery: 96.4%) Tj 0 -18 Td (Temperature compliance: 98.7%) Tj 0 -18 Td (Active routes: 24) Tj ET\nendstream endobj\ntrailer<< /Root 1 0 R >>\n%%EOF`
+    const lines = [
+      'Snow Fleet Management Monitoring Report',
+      `Generated: ${report.generated_at}`,
+      `Reporting range: last ${report.range_days} days`,
+      '',
+      'DELIVERY PERFORMANCE',
+      `On-time delivery: ${report.on_time_delivery}`,
+      `Average route time: ${report.average_route_time}`,
+      `Active routes: ${report.active_routes}`,
+      '',
+      'COLD-CHAIN PERFORMANCE',
+      `Temperature compliance: ${report.temperature_compliance}`,
+      `Temperature alerts: ${report.temperature_alerts}`,
+      '',
+      'DRIVER PERFORMANCE',
+      `Driver acceptance: ${report.driver_acceptance}`,
+      '',
+      'This report contains the monitoring metrics available from Snow Fleet Management.'
+    ]
+    const escapePdf = (value: string) => value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
+    const content = `BT /F1 18 Tf 54 740 Td (${escapePdf(lines[0])}) Tj /F1 10 Tf 0 -24 Td ${lines.slice(1).map(line => `(${escapePdf(line)}) Tj 0 -16 Td`).join(' ')} ET`
+    const pdf = `%PDF-1.4\n1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj\n2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj\n3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>endobj\n4 0 obj<< /Length ${content.length} >>stream\n${content}\nendstream endobj\ntrailer<< /Root 1 0 R >>\n%%EOF`
     return new Response(pdf, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="snow-fleet-monitoring-${range}d.pdf"` } })
   }
   const csv = `Metric,Value\nGenerated at,${report.generated_at}\nRange days,${report.range_days}\nOn-time delivery,${report.on_time_delivery}\nTemperature compliance,${report.temperature_compliance}\nAverage route time,${report.average_route_time}\nDriver acceptance,${report.driver_acceptance}\nActive routes,${report.active_routes}\nTemperature alerts,${report.temperature_alerts}\n`
