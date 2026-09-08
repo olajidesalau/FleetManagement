@@ -1564,7 +1564,6 @@ app.get('/traffic', (c) => c.render(<TrafficPage />))
 app.get('/profile', (c) => c.render(<ProfilePage />))
 app.get('/monitoring/export', (c) => c.render(<MonitoringExportPage />))
 app.get('/vehicles/new', (c) => c.render(<VehicleFormPage />))
-app.get('/vehicles/:vehicleId', (c) => c.render(<ManagementPage title={`Vehicle ${c.req.param('vehicleId')}`} message="Review vehicle readiness, temperature, service history, and assigned route." identifier={c.req.param('vehicleId')} backHref="/vehicles" />))
 app.get('/vehicles/:vehicleId/edit', async (c) => {
   const identifier = c.req.param('vehicleId')
   const fallbackVehicles: Record<string, Record<string, any>> = {
@@ -1574,13 +1573,9 @@ app.get('/vehicles/:vehicleId/edit', async (c) => {
     'SN-19': { vehicle_type: 'Refrigerated van', status: 'parked', temperature_controlled: 1, target_temperature_min: 2, target_temperature_max: 8, mileage: 45108 },
     'SN-05': { vehicle_type: 'Refrigerated van', status: 'available', temperature_controlled: 1, target_temperature_min: 2, target_temperature_max: 8, mileage: 29440 }
   }
-  try {
-    const vehicle = await c.env.DB.prepare(`SELECT * FROM vehicles WHERE id = ? OR vehicle_reference = ?`).bind(Number(identifier) || 0, identifier).first()
-    return c.render(<VehicleEditPage vehicle={vehicle || { vehicle_reference: identifier, registration_number: '', ...fallbackVehicles[identifier] || { vehicle_type: 'Refrigerated van', status: 'available', temperature_controlled: 1, target_temperature_min: 2, target_temperature_max: 8, mileage: 0 } }} />)
-  } catch {
-    return c.render(<VehicleEditPage vehicle={{ vehicle_reference: identifier, registration_number: '', ...fallbackVehicles[identifier] || { vehicle_type: 'Refrigerated van', status: 'available', temperature_controlled: 1, target_temperature_min: 2, target_temperature_max: 8, mileage: 0 } }} />)
-  }
+  return c.render(<VehicleEditPage vehicle={{ vehicle_reference: identifier, registration_number: '', ...fallbackVehicles[identifier] || { vehicle_type: 'Refrigerated van', status: 'available', temperature_controlled: 1, target_temperature_min: 2, target_temperature_max: 8, mileage: 0 } }} />)
 })
+app.get('/vehicles/:vehicleId', (c) => c.render(<ManagementPage title={`Vehicle ${c.req.param('vehicleId')}`} message="Review vehicle readiness, temperature, service history, and assigned route." identifier={c.req.param('vehicleId')} backHref="/vehicles" />))
 app.get('/drivers/new', (c) => c.render(<DriverFormPage />))
 app.get('/drivers/:driverId', (c) => c.render(<ManagementPage title={`Driver ${c.req.param('driverId')}`} message="Review driver availability, route assignments, and licence status." identifier={c.req.param('driverId')} backHref="/drivers" />))
 app.get('/drivers/:driverId/edit', (c) => c.render(<ManagementPage title={`Edit driver ${c.req.param('driverId')}`} message="Update driver contact, licence, and availability information." identifier={c.req.param('driverId')} backHref="/drivers" />))
