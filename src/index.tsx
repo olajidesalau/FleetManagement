@@ -1510,9 +1510,18 @@ app.post('/api/fleet/routes', async (c) => {
   } catch (error: any) { return c.text(`Route allocation failed: ${error.message}`, 400) }
 })
 
-// Compatibility handlers for legacy form actions while admin action APIs are being connected.
-app.post('/admin/providers/:providerId/approval', (c) => c.redirect('/admin/providers'))
-app.post('/admin/users/:userId/suspend', (c) => c.redirect('/admin/users'))
+// HTML form handlers for the admin pages. These mirror the JSON APIs and remain admin-only.
+app.post('/admin/providers/:providerId/approval', authenticate, requireRole('admin'), async (c) => {
+  const form = await c.req.parseBody()
+  const approvalStatus = String(form.status || '')
+  if (!['approved', 'rejected'].includes(approvalStatus)) return c.text('Invalid approval status', 400)
+  await c.env.DB.prepare(`UPDATE provider_profiles SET approval_status = ?, approval_date = datetime('now'), approved_by = ?, updated_at = datetime('now') WHERE id = ?`).bind(approvalStatus, (c.get('user') as any).userId, c.req.param('providerId')).run()
+  return c.redirect('/admin/providers')
+})
+app.post('/admin/users/:userId/suspend', authenticate, requireRole('admin'), async (c) => {
+  await c.env.DB.prepare(`UPDATE users SET status = 'suspended', updated_at = datetime('now') WHERE id = ? AND role != 'admin'`).bind(c.req.param('userId')).run()
+  return c.redirect('/admin/users')
+})
 app.post('/notifications/:notificationId/read', (c) => c.redirect('/notifications'))
 
 // ============================================
@@ -1571,7 +1580,8 @@ app.get('/admin/users', authenticate, requireRole('admin'), async (c) => {
   return c.render(<AdminUsersPage users={users.results} />)
 })
 app.get('/admin/providers', authenticate, requireRole('admin'), async (c) => {
-  const providers = await c.env.DB.prepare(`SELECT p.*, u.full_name, u.email, u.phone FROM provider_profiles p JOIN users u ON u.id = p.user_id ORDER BY p.created_at DESC LIMIT 200`).all()
+  const status = c.req.query('status') || ''
+  const providers = await c.env.DB.prepare(`SELECT p.*, u.full_name, u.email, u.phone FROM provider_profiles p JOIN users u ON u.id = p.user_id WHERE (? = '' OR p.approval_status = ?) ORDER BY p.created_at DESC LIMIT 200`).bind(status, status).all()
   return c.render(<AdminProvidersPage providers={providers.results} />)
 })
 app.get('/admin/bookings', authenticate, requireRole('admin'), async (c) => {
@@ -1579,6 +1589,8 @@ app.get('/admin/bookings', authenticate, requireRole('admin'), async (c) => {
   return c.render(<AdminBookingsPage bookings={bookings.results} />)
 })
 app.get('/admin/stats', authenticate, requireRole('admin'), async (c) => c.redirect('/admin/dashboard'))
+app.get('/admin/users/:userId', authenticate, requireRole('admin'), async (c) => c.render(<ManagementPage title={`User ${c.req.param('userId')}`} eyebrow="Admin user management" message="Review account identity, role, status, and activity." identifier={c.req.param('userId')} backHref="/admin/users" />))
+app.get('/admin/providers/:providerId', authenticate, requireRole('admin'), async (c) => c.render(<ManagementPage title={`Provider ${c.req.param('providerId')}`} eyebrow="Admin provider management" message="Review provider verification, approval status, and service information." identifier={c.req.param('providerId')} backHref="/admin/providers" />))
 
 
 
