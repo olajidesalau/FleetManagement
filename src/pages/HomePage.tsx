@@ -11,6 +11,7 @@ export const HomePage = () => {
         <div>
           <p class="eyebrow">Operations overview / Tuesday 08 October 2024</p>
           <h1>Good morning, Fleet Manager</h1>
+          <p class="fleet-slogan">Snow Logistics Limited, Delivering Confidence. Preserving Quality.</p>
           <p class="header-copy">A live view of every route, vehicle and temperature-sensitive delivery.</p>
         </div>
         <div class="header-actions">
