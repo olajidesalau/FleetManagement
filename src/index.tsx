@@ -65,6 +65,9 @@ function hashPassword(password: string): string {
 async function authenticate(c: any, next: any) {
   const authHeader = c.req.header('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (c.req.header('Accept')?.includes('text/html')) {
+      return c.redirect('/auth/login')
+    }
     return c.json({ error: 'Unauthorized' }, 401)
   }
   
@@ -72,6 +75,9 @@ async function authenticate(c: any, next: any) {
   const payload = decodeJWT(token)
   
   if (!payload || !payload.userId) {
+    if (c.req.header('Accept')?.includes('text/html')) {
+      return c.redirect('/auth/login')
+    }
     return c.json({ error: 'Invalid token' }, 401)
   }
   
