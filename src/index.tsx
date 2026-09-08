@@ -1649,8 +1649,14 @@ app.post('/notifications/:notificationId/read', (c) => c.redirect('/notification
 // ============================================
 
 // Serve the main page
-app.get('/', (c) => {
-  return c.render(<HomePage />)
+app.get('/', async (c) => {
+  const authHeader = c.req.header('Authorization')
+  let currentUser: any = undefined
+  if (authHeader?.startsWith('Bearer ')) {
+    const session = decodeJWT(authHeader.substring(7))
+    if (session?.userId) currentUser = await c.env.DB.prepare('SELECT id, full_name, email, role FROM users WHERE id = ?').bind(session.userId).first()
+  }
+  return c.render(<HomePage currentUser={currentUser} />)
 })
 
 // Fleet management pages

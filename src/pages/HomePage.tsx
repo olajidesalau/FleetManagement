@@ -4,13 +4,14 @@ const routes = [
   { id: 'SN-206', route: 'Birmingham > Nottingham', driver: 'Nia Patel', vehicle: 'SN-22', status: 'On route', temp: '5.1 C', eta: '17:20', progress: '54%' },
 ]
 
-export const HomePage = () => {
+export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
+  const managerName = currentUser?.full_name || 'Fleet Manager'
   return (
     <div class="fleet-dashboard">
       <section class="dashboard-header">
         <div>
           <p class="eyebrow">Operations overview / Tuesday 08 October 2024</p>
-          <h1>Good morning, Fleet Manager</h1>
+          <h1>Good morning, {managerName}</h1>
           <p class="fleet-slogan">Snow Logistics Limited, Delivering Confidence. Preserving Quality.</p>
           <p class="header-copy">A live view of every route, vehicle and temperature-sensitive delivery.</p>
         </div>

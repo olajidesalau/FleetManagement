@@ -127,6 +127,8 @@
         // Update nav and redirect
         const user = resp.data.user;
         if (document.querySelector('.user-menu')) renderLoggedInUser(user);
+        const greeting = document.querySelector('.dashboard-header h1');
+        if (greeting && user.full_name) greeting.textContent = `Good morning, ${user.full_name}`;
         window.location.href = '/';
       }
     } catch (err) {
