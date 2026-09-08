@@ -10,6 +10,7 @@ export const Navigation = ({ currentUser }: { currentUser?: any } = {}) => {
           <a class="active" href="/">Overview</a>
           <a href="/routes">Routes</a>
           <a href="/vehicles">Vehicles</a>
+          <a href="/temperature">Temperature</a>
           <a href="/drivers">Drivers</a>
           <a href="/customers">Customers</a>
           <a href="/monitoring">Monitoring</a>

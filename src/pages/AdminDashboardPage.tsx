@@ -51,6 +51,7 @@ export const AdminDashboardPage = ({ stats = {} }: { stats?: any } = {}) => {
             <a href="/admin/providers" style="background: #4caf50; color: white; padding: 1rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">🏢 Approve Providers</a>
             <a href="/admin/bookings" style="background: #ff9800; color: white; padding: 1rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">📅 View All Bookings</a>
             <a href="/admin/stats" style="background: #9c27b0; color: white; padding: 1rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">📈 Detailed Stats</a>
+            <a href="/temperature" style="background: #007f82; color: white; padding: 1rem; border-radius: 4px; text-decoration: none; text-align: center; font-weight: bold;">🌡 Temperature Monitor</a>
           </div>
         </div>
 
