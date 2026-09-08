@@ -231,8 +231,27 @@ h2 { margin: 0; font-size: 21px; }
 .profile-form-status { grid-column: 1 / -1; margin: 0; color: #2d9471; font-size: 11px; }
 .conversation-page > div { max-width: 900px; margin: 0 auto; }
 .conversation-card { padding: 16px; }
+.messages-layout { display: grid; grid-template-columns: 1.35fr 1fr; gap: 19px; }
+.conversation-list-panel { overflow: hidden; }
+.conversation-list { border-top: 1px solid #edf1f1; }
+.conversation-list-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 16px 25px; border-bottom: 1px solid #edf1f1; text-decoration: none; }
+.conversation-list-item:hover, .conversation-unread { background: #f6fbfa; }
+.conversation-avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: var(--teal-soft); color: var(--teal); font-family: Georgia, serif; font-size: 13px; }
+.conversation-summary, .conversation-meta { display: grid; gap: 4px; min-width: 0; }
+.conversation-summary strong { color: var(--ink); font-size: 12px; }
+.conversation-summary small, .conversation-summary > span, .conversation-meta small { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.conversation-summary > span { margin-top: 4px; }
+.conversation-meta { justify-items: end; align-self: stretch; }
+.conversation-meta b { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: var(--teal); color: white; font-size: 10px; }
+.messages-empty { display: grid; justify-items: center; gap: 9px; padding: 55px 25px; color: var(--muted); font-size: 12px; text-align: center; }
+.messages-empty strong { color: var(--ink); font-size: 14px; }
+.message-intro-panel { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 320px; padding: 35px; background: #eaf4f1; }
+.message-intro-icon { width: 43px; height: 43px; display: grid; place-items: center; margin-bottom: 21px; border: 1px solid #91cfc4; color: var(--teal); font-size: 22px; }
+.message-intro-panel h2 { margin-bottom: 12px; }
+.message-intro-panel p:not(.eyebrow) { max-width: 320px; margin: 0 0 24px; color: #52666a; font-size: 13px; line-height: 1.65; }
 @media (max-width: 900px) { .topbar { flex-wrap: wrap; gap: 16px; padding: 17px 5vw; } .primary-nav { order: 3; width: 100%; min-height: 32px; gap: 20px; overflow-x: auto; } .primary-nav a { padding-bottom: 7px; white-space: nowrap; } .metric-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-columns, .bottom-grid { grid-template-columns: 1fr; } }
-@media (max-width: 900px) { .page-heading, .alert-page-grid, .monitor-grid, .scan-layout, .traffic-layout, .detail-grid, .profile-grid { align-items: flex-start; grid-template-columns: 1fr; flex-direction: column; } .scan-result-row, .traffic-source-row { grid-template-columns: 1fr; gap: 12px; } }
+@media (max-width: 900px) { .page-heading, .alert-page-grid, .monitor-grid, .scan-layout, .traffic-layout, .detail-grid, .profile-grid, .messages-layout { align-items: flex-start; grid-template-columns: 1fr; flex-direction: column; } .scan-result-row, .traffic-source-row { grid-template-columns: 1fr; gap: 12px; } }
 @media (max-width: 560px) { .fleet-dashboard { padding-top: 28px; } .dashboard-header { align-items: flex-start; flex-direction: column; } .header-actions { align-items: flex-start; flex-direction: column; gap: 12px; } .metric-grid { gap: 9px; } .metric-card { min-height: 122px; padding: 15px; } .metric-card strong { font-size: 25px; } .panel-heading, .route-row, .alert-item { padding-left: 16px; padding-right: 16px; } .route-row { grid-template-columns: 67px 1fr 48px; gap: 9px; } .route-main strong { font-size: 11px; } .user-name { display: none; } .activity-stats { margin-left: 16px; margin-right: 16px; } .page-heading { align-items: flex-start; } .page-heading .header-actions { align-items: flex-start; } .donut-metric { gap: 18px; padding-left: 16px; padding-right: 16px; } .scan-form, .traffic-form { grid-template-columns: 1fr; padding: 0 16px; } .scan-helper { margin-left: 16px; margin-right: 16px; } .scan-control-panel .panel-heading, .scan-summary-panel, .traffic-control-panel .panel-heading, .provider-status-panel { padding-left: 16px; padding-right: 16px; } .traffic-recommendation { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; } }
 @media (max-width: 560px) { .form-panel { padding: 16px; } .form-grid { grid-template-columns: 1fr; } .form-grid label:last-child:nth-child(odd) { grid-column: auto; } .form-actions { justify-content: stretch; } .form-actions .button { flex: 1; text-align: center; } }
 @media (max-width: 560px) { .profile-card, .role-card, .profile-edit-panel { padding: 16px; } .role-data { grid-template-columns: 1fr; } .profile-form { grid-template-columns: 1fr; } .profile-form-status { grid-column: auto; } }
+@media (max-width: 560px) { .conversation-list-item { padding-left: 16px; padding-right: 16px; } .message-intro-panel { min-height: 240px; padding: 25px; } }

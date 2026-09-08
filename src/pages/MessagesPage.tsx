@@ -1,44 +1,12 @@
 export const MessagesPage = ({ conversations = [] }: { conversations?: any[] } = {}) => {
+  const unreadCount = conversations.filter((conversation: any) => Number(conversation.unread_count || 0) > 0).length
+
   return (
-    <div style="padding: 2rem; min-height: 100vh; background: #f5f5f5;">
-      <div style="max-width: 1200px; margin: 0 auto;">
-        <h1>💬 Messages</h1>
-
-        {conversations.length === 0 ? (
-          <div style="background: white; padding: 2rem; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <p style="font-size: 1.1rem; color: #666;">No messages yet. Open a profile and choose Message to start a conversation.</p>
-          </div>
-        ) : (
-          <div style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem;">
-            {/* Conversations List */}
-            <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
-              {conversations.map((conv: any) => (
-                <a href={`/messages/conversation/${conv.id}`} style="display: block; padding: 1rem; border-bottom: 1px solid #eee; text-decoration: none; color: black; hover:background: #f9f9f9;">
-                  <h4 style="margin: 0 0 0.5rem 0;">{conv.other_user_name}</h4>
-                  <p style="margin: 0; font-size: 0.9rem; color: #666; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                    {conv.last_message || 'No messages yet'}
-                  </p>
-                  <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #999;">{conv.last_message_date || ''}</p>
-                </a>
-              ))}
-            </div>
-
-            {/* Conversation View */}
-            <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; min-height: 500px;">
-              <div style="flex: 1; padding: 1.5rem; overflow-y: auto;">
-                {/* Messages would be rendered here */}
-                <div style="text-align: center; color: #999; padding: 2rem;">
-                  <p>Select a conversation to view messages</p>
-                </div>
-              </div>
-
-              {/* Message Input */}
-              <div style="padding: 1.5rem; border-top: 1px solid #eee;">
-                <a href="/providers/search" style="display: inline-block; background: #4db8ff; color: black; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-weight: bold;">Find a profile to message</a>
-              </div>
-            </div>
-          </div>
-        )}
+    <div class="fleet-dashboard messages-page">
+      <div class="page-heading"><div><p class="eyebrow">Communication hub</p><h1>Messages</h1><p class="header-copy">Coordinate deliveries and keep conversations with customers, drivers, and fleet teams in one place.</p></div><div class="header-actions"><span class="sync-status"><span class="status-dot status-dot-live"></span>{unreadCount} unread</span><a class="button button-primary" href="/providers/search">Find a profile to message</a></div></div>
+      <div class="messages-layout">
+        <section class="panel conversation-list-panel"><div class="panel-heading"><div><p class="eyebrow">Inbox</p><h2>Recent conversations</h2></div><span class="count-badge">{conversations.length}</span></div>{conversations.length === 0 ? <div class="messages-empty"><strong>Your inbox is clear.</strong><span>Open a customer, driver, or provider profile to start a conversation.</span><a class="text-link" href="/providers/search">Browse profiles <span>→</span></a></div> : <div class="conversation-list">{conversations.map((conversation: any) => <a class={`conversation-list-item ${Number(conversation.unread_count || 0) > 0 ? 'conversation-unread' : ''}`} href={`/messages/conversation/${conversation.id}`}><span class="conversation-avatar">{String(conversation.other_user_name || 'U').split(/\s+/).map((part: string) => part[0]).join('').slice(0, 2).toUpperCase()}</span><span class="conversation-summary"><strong>{conversation.other_user_name}</strong><small>{conversation.other_user?.role || 'Fleet contact'}</small><span>{conversation.last_message || 'No messages yet'}</span></span><span class="conversation-meta"><small>{conversation.last_message_date || ''}</small>{Number(conversation.unread_count || 0) > 0 && <b>{conversation.unread_count}</b>}</span></a>)}</div>}</section>
+        <section class="panel message-intro-panel"><div class="message-intro-icon">✦</div><p class="eyebrow">Profile messaging</p><h2>Keep the fleet moving together</h2><p>Send clear updates about route allocations, customer requirements, vehicle readiness, and delivery exceptions.</p><a class="button button-secondary" href="/providers/search">Start a new conversation</a></section>
       </div>
     </div>
   )
