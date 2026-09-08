@@ -97,16 +97,19 @@ function requireRole(...roles: string[]) {
 // Register new user
 app.post('/api/auth/register', async (c) => {
   try {
-    const { email, password, full_name, phone, role } = await c.req.json()
+    const { email, password, full_name, phone, role, licence_number, licence_expiry } = await c.req.json()
     
     // Validate required fields
     if (!email || !password || !full_name || !role) {
       return c.json({ error: 'Missing required fields' }, 400)
     }
     
-    // Validate role
-    if (!['customer', 'provider'].includes(role)) {
-      return c.json({ error: 'Invalid role. Must be customer or provider' }, 400)
+    // Driver accounts use the existing provider-compatible user role plus a fleet driver record.
+    if (!['customer', 'provider', 'driver', 'admin'].includes(role)) {
+      return c.json({ error: 'Invalid role. Choose customer, driver, or admin' }, 400)
+    }
+    if (role === 'driver' && (!licence_number || !licence_expiry)) {
+      return c.json({ error: 'Driver licence number and expiry are required' }, 400)
     }
 
     // Validate full_name (letters, spaces, apostrophe, hyphen) max 50 chars
@@ -126,12 +129,13 @@ app.post('/api/auth/register', async (c) => {
     
     // Hash password
     const hashedPassword = hashPassword(password)
+    const storedRole = role === 'driver' ? 'provider' : role
     
     // Insert user
     const result = await (c.env.DB as D1Database).prepare(`
       INSERT INTO users (email, password, full_name, phone, role, status, email_verified, created_at)
       VALUES (?, ?, ?, ?, ?, 'active', 0, datetime('now'))
-    `).bind(email, hashedPassword, full_name, phone || null, role).run()
+    `).bind(email, hashedPassword, full_name, phone || null, storedRole).run()
     
     const userId = result.meta.last_row_id
     
@@ -143,6 +147,12 @@ app.post('/api/auth/register', async (c) => {
           services_offered, approval_status, created_at
         ) VALUES (?, ?, 0, '[]', '[]', 'pending', datetime('now'))
       `).bind(userId, full_name).run()
+    }
+    if (role === 'driver') {
+      await (c.env.DB as D1Database).prepare(`
+        INSERT INTO drivers (user_id, driver_reference, licence_number, licence_expiry, phone, status)
+        VALUES (?, ?, ?, ?, ?, 'available')
+      `).bind(userId, `DRV-${String(userId).padStart(4, '0')}`, licence_number, licence_expiry, phone || null).run()
     }
     
     // Generate JWT token

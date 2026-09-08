@@ -154,9 +154,11 @@
         const user = resp.data.user;
         const navWrapper = document.querySelector('nav > div');
         if (navWrapper) renderLoggedInUser(user);
-        // If provider, send to profile page to finish setup
-        if (user && user.role === 'provider') {
+        // Send each registered profile to its operational starting page.
+        if (user && (user.role === 'provider' || user.role === 'driver')) {
           window.location.href = '/providers/profile';
+        } else if (user && user.role === 'admin') {
+          window.location.href = '/admin/dashboard';
         } else {
           window.location.href = '/';
         }

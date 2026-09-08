@@ -137,9 +137,21 @@ export const RegisterPage = () => {
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333;">Account Type</label>
                 <select name="role" required style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; background: white;">
                   <option value="">Select an option</option>
-                  <option value="customer">Customer - I want to find services</option>
-                  <option value="provider">Service Provider - I want to offer services</option>
+                  <option value="customer">Customer - manage delivery requirements</option>
+                  <option value="driver">Driver - accept and service routes</option>
+                  <option value="admin">Fleet Admin - manage the operation</option>
                 </select>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                <div>
+                  <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333;">Driver Licence Number</label>
+                  <input type="text" name="licence_number" placeholder="Required for driver accounts" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; background: white;" />
+                </div>
+                <div>
+                  <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #333;">Licence Expiry</label>
+                  <input type="date" name="licence_expiry" style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; background: white;" />
+                </div>
               </div>
 
               <div style="display: grid; gap: 0.75rem; padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; color: #1e3a8a;">
@@ -167,7 +179,8 @@ export const RegisterPage = () => {
 
             <div style="margin-top: 1.5rem; padding: 1rem; background: white; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 0.95rem; color: #4b5563;">
               <p style="margin: 0;"><strong>For Customers:</strong> Browse services, make bookings, leave reviews.</p>
-              <p style="margin: 0.5rem 0 0 0;"><strong>For Providers:</strong> Create a profile, list services, and manage bookings. Provider accounts may require approval before going live.</p>
+              <p style="margin: 0.5rem 0 0 0;"><strong>For Drivers:</strong> View assigned routes, monitor vehicles, and update delivery activity.</p>
+              <p style="margin: 0.5rem 0 0 0;"><strong>For Fleet Admins:</strong> Manage users, routes, vehicles, alerts, and monitoring data.</p>
             </div>
           </div>
 
