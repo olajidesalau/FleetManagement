@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $PSScriptRoot
-$staging = Join-Path $root '.fleet-pages-deploy'
+$staging = Join-Path $env:TEMP "snow-fleet-pages-$([guid]::NewGuid().ToString('N'))"
 
 try {
   if (Test-Path $staging) {
