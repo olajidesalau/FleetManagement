@@ -1527,7 +1527,12 @@ app.post('/api/fleet/routes', async (c) => {
 
 app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
   const routeId = Number(c.req.param('routeId'))
-  const form = await c.req.parseBody()
+  let form: Record<string, any>
+  try {
+    form = await c.req.parseBody()
+  } catch {
+    return c.text('Invalid delivery form. Please upload a proof photo and try again.', 400)
+  }
   const deliveryTime = String(form.actual_arrival || '').trim()
   if (!routeId || !deliveryTime) return c.text('Delivery timestamp is required', 400)
   const proofPhoto = form.proof_photo as File | undefined
