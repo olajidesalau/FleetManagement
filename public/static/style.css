@@ -236,6 +236,8 @@ h2 { margin: 0; font-size: 21px; }
 .delivery-confirmed p:not(.eyebrow) { margin: 0 0 6px; color: #52666a; font-size: 13px; }
 .delivery-confirmed span:last-child { color: var(--muted); font-size: 11px; }
 .delivery-check { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: #43aa84; color: white; font-size: 26px; }
+.delivery-form small { color: var(--muted); font-size: 10px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.proof-photo { display: block; width: min(100%, 360px); max-height: 260px; margin-top: 18px; object-fit: cover; border: 1px solid var(--line); }
 .management-placeholder { display: grid; gap: 8px; padding: 30px 25px; border-top: 1px solid #edf1f1; color: var(--muted); font-size: 12px; }
 .management-placeholder strong { color: var(--ink); font-size: 14px; }
 .form-panel { padding: 25px; }
