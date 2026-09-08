@@ -16,8 +16,8 @@ export const Navigation = ({ currentUser }: { currentUser?: any } = {}) => {
       </div>
       <div class="user-menu">
         <a class="notification-button" href="/alerts" aria-label="View alerts">●<span>4</span></a>
-        {currentUser ? <span class="user-name">{currentUser.email}</span> : <span class="user-name">Fleet Manager</span>}
-        <span class="avatar">FM</span>
+        {currentUser ? <a class="user-name" href="/profile">{currentUser.email}</a> : <a class="user-name" href="/profile">Fleet Manager</a>}
+        <a class="avatar" href="/profile" aria-label="Open my profile">FM</a>
       </div>
     </nav>
   )

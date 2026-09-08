@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { D1Database } from '@cloudflare/workers-types'
-import { HomePage, ProvidersSearchPage, ProviderProfilePage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, AlertsPage, MonitoringPage, DriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, CustomerFormPage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
+import { HomePage, ProvidersSearchPage, ProviderProfilePage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, AlertsPage, MonitoringPage, DriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
 import { renderer } from './renderer' 
 
 type Bindings = {
@@ -246,6 +246,56 @@ app.get('/api/auth/me', authenticate, async (c) => {
     return c.json({ user: profile })
   } catch (error: any) {
     return c.json({ error: 'Failed to fetch profile: ' + error.message }, 500)
+  }
+})
+
+app.get('/api/profile', authenticate, async (c) => {
+  try {
+    const session = c.get('user') as any
+    const userId = session?.userId
+    if (!userId) return c.json({ error: 'Invalid session' }, 401)
+    const user = await c.env.DB.prepare(`SELECT id, email, full_name, phone, role, status, email_verified, phone_verified, created_at, last_login FROM users WHERE id = ?`).bind(userId).first() as any
+    if (!user) return c.json({ error: 'User not found' }, 404)
+
+    let roleData: Record<string, any> = {}
+    if (user.role === 'admin') {
+      const [users, routes, vehicles, alerts] = await Promise.all([
+        c.env.DB.prepare(`SELECT COUNT(*) AS count FROM users`).first(),
+        c.env.DB.prepare(`SELECT COUNT(*) AS count FROM fleet_routes WHERE status NOT IN ('delivered', 'cancelled')`).first(),
+        c.env.DB.prepare(`SELECT COUNT(*) AS count FROM vehicles WHERE status != 'offline'`).first(),
+        c.env.DB.prepare(`SELECT COUNT(*) AS count FROM alerts WHERE status = 'open'`).first()
+      ])
+      roleData = { profile_type: 'admin', total_users: Number((users as any)?.count || 0), active_routes: Number((routes as any)?.count || 0), vehicles_online: Number((vehicles as any)?.count || 0), open_alerts: Number((alerts as any)?.count || 0) }
+    } else if (user.role === 'provider') {
+      const driver = await c.env.DB.prepare(`SELECT id, driver_reference, licence_number, licence_expiry, phone, status, emergency_contact_name, emergency_contact_phone FROM drivers WHERE user_id = ?`).bind(userId).first() as any
+      if (driver) {
+        const assigned = await c.env.DB.prepare(`SELECT COUNT(*) AS count FROM fleet_routes WHERE driver_id = ? AND status NOT IN ('delivered', 'cancelled')`).bind(driver.id).first() as any
+        roleData = { profile_type: 'driver', ...driver, active_routes: Number(assigned?.count || 0) }
+      } else {
+        const provider = await c.env.DB.prepare(`SELECT id, business_name, approval_status, average_rating, total_bookings FROM provider_profiles WHERE user_id = ?`).bind(userId).first()
+        roleData = { profile_type: 'provider', ...(provider || {}) }
+      }
+    } else {
+      const routes = await c.env.DB.prepare(`SELECT COUNT(*) AS count FROM fleet_routes WHERE customer_id = ?`).bind(userId).first() as any
+      roleData = { profile_type: 'customer', route_count: Number(routes?.count || 0) }
+    }
+    return c.json({ user, roleData })
+  } catch (error: any) {
+    return c.json({ error: 'Failed to load profile: ' + error.message }, 500)
+  }
+})
+
+app.put('/api/profile', authenticate, async (c) => {
+  try {
+    const session = c.get('user') as any
+    const userId = session?.userId
+    const body = await c.req.json<{ full_name?: string; phone?: string }>()
+    const fullName = String(body.full_name || '').trim()
+    if (!userId || !fullName || !/^[A-Za-z\s'\-]{1,80}$/.test(fullName)) return c.json({ error: 'A valid full name is required' }, 400)
+    await c.env.DB.prepare(`UPDATE users SET full_name = ?, phone = ?, updated_at = datetime('now') WHERE id = ?`).bind(fullName, body.phone || null, userId).run()
+    return c.json({ success: true, message: 'Profile updated' })
+  } catch (error: any) {
+    return c.json({ error: 'Failed to update profile: ' + error.message }, 500)
   }
 })
 
@@ -1447,6 +1497,7 @@ app.get('/routes/scan', (c) => c.render(<RouteScanPage />))
 app.get('/routes/new', (c) => c.render(<RouteFormPage />))
 app.get('/routes/:routeId', (c) => c.render(<RouteDetailPage routeId={c.req.param('routeId')} />))
 app.get('/traffic', (c) => c.render(<TrafficPage />))
+app.get('/profile', (c) => c.render(<ProfilePage />))
 app.get('/monitoring/export', (c) => c.render(<MonitoringExportPage />))
 app.get('/vehicles/new', (c) => c.render(<VehicleFormPage />))
 app.get('/vehicles/:vehicleId', (c) => c.render(<ManagementPage title={`Vehicle ${c.req.param('vehicleId')}`} message="Review vehicle readiness, temperature, service history, and assigned route." identifier={c.req.param('vehicleId')} backHref="/vehicles" />))

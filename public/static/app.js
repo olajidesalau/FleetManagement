@@ -353,6 +353,60 @@
       runTrafficScan();
     }
 
+    const profilePage = document.querySelector('[data-profile-page]');
+    if (profilePage) {
+      const token = localStorage.getItem('snow_token');
+      const profileStatus = profilePage.querySelector('[data-profile-status]');
+      const roleData = profilePage.querySelector('[data-profile-role-data]');
+      const formStatus = profilePage.querySelector('[data-profile-form-status]');
+      const escapeProfile = value => String(value ?? '--').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+      const formatDate = value => value ? new Date(value).toLocaleDateString() : '--';
+
+      const renderRoleData = data => {
+        const type = data.profile_type;
+        const cards = type === 'admin'
+          ? [['Total users', data.total_users], ['Active routes', data.active_routes], ['Vehicles online', data.vehicles_online], ['Open alerts', data.open_alerts]]
+          : type === 'driver'
+            ? [['Driver reference', data.driver_reference], ['Licence expiry', formatDate(data.licence_expiry)], ['Driver status', data.status], ['Active routes', data.active_routes]]
+            : type === 'customer'
+              ? [['Customer routes', data.route_count], ['Account type', 'Customer'], ['Delivery role', 'Affiliated customer']]
+              : [['Business', data.business_name], ['Approval', data.approval_status], ['Rating', data.average_rating], ['Bookings', data.total_bookings]];
+        roleData.innerHTML = cards.map(card => `<div><span>${escapeProfile(card[0])}</span><strong>${escapeProfile(card[1])}</strong></div>`).join('');
+        profilePage.querySelector('[data-profile-role-title]').textContent = type === 'admin' ? 'Admin profile' : type === 'driver' ? 'Driver profile' : type === 'customer' ? 'Customer profile' : 'Provider profile';
+      };
+
+      const loadProfile = async () => {
+        if (!token) { profileStatus.textContent = 'Sign in required'; roleData.innerHTML = '<span><a href="/auth/login">Sign in</a> to view your profile.</span>'; return; }
+        try {
+          const response = await fetch('/api/profile', { headers: { Authorization: `Bearer ${token}` } });
+          if (!response.ok) throw new Error('Profile unavailable');
+          const payload = await response.json();
+          const user = payload.user;
+          profilePage.querySelector('[data-profile-initials]').textContent = user.full_name.split(/\s+/).map(name => name[0]).join('').slice(0, 2).toUpperCase();
+          profilePage.querySelector('[data-profile-name]').textContent = user.full_name;
+          profilePage.querySelector('[data-profile-role]').textContent = `${user.role} account`;
+          profilePage.querySelector('[data-profile-email]').textContent = user.email;
+          profilePage.querySelector('[data-profile-phone]').textContent = user.phone || 'Not provided';
+          profilePage.querySelector('[data-profile-created]').textContent = formatDate(user.created_at);
+          profilePage.querySelector('[data-profile-account-status]').textContent = user.status;
+          profilePage.querySelector('[data-profile-full-name]').value = user.full_name;
+          profilePage.querySelector('[data-profile-phone-input]').value = user.phone || '';
+          renderRoleData(payload.roleData);
+          profileStatus.textContent = 'Profile loaded';
+        } catch (error) { profileStatus.textContent = 'Unable to load profile'; roleData.innerHTML = '<span>Sign in again to refresh your profile data.</span>'; }
+      };
+
+      profilePage.querySelector('[data-profile-form]').addEventListener('submit', async event => {
+        event.preventDefault();
+        formStatus.textContent = 'Saving...';
+        const body = Object.fromEntries(new FormData(event.currentTarget).entries());
+        const response = await fetch('/api/profile', { method: 'PUT', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        formStatus.textContent = response.ok ? 'Profile saved.' : 'Profile could not be saved.';
+        if (response.ok) loadProfile();
+      });
+      loadProfile();
+    }
+
     // Conversation message form handlers (AJAX)
     const convForms = document.querySelectorAll('form[data-conversation-form]');
     convForms.forEach(f => {
