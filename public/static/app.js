@@ -39,10 +39,9 @@
   }
 
   function renderLoggedInUser(user) {
-    const navWrapper = document.querySelector('nav > div');
-    if (!navWrapper) return;
-    const mainLinksContainer = navWrapper.children[1];
-    const userSection = navWrapper.children[2];
+    const mainLinksContainer = document.querySelector('.primary-nav');
+    const userSection = document.querySelector('.user-menu');
+    if (!mainLinksContainer || !userSection) return;
 
     // Replace user section
     userSection.innerHTML = '';
@@ -127,8 +126,7 @@
         setToken(resp.data.token);
         // Update nav and redirect
         const user = resp.data.user;
-        const navWrapper = document.querySelector('nav > div');
-        if (navWrapper) renderLoggedInUser(user);
+        if (document.querySelector('.user-menu')) renderLoggedInUser(user);
         window.location.href = '/';
       }
     } catch (err) {
@@ -154,8 +152,7 @@
       if (resp.data && resp.data.token) {
         setToken(resp.data.token);
         const user = resp.data.user;
-        const navWrapper = document.querySelector('nav > div');
-        if (navWrapper) renderLoggedInUser(user);
+        if (document.querySelector('.user-menu')) renderLoggedInUser(user);
         // Send each registered profile to its operational starting page.
         if (user && (user.role === 'provider' || user.role === 'driver')) {
           window.location.href = '/providers/profile';
@@ -197,9 +194,8 @@
     if (registerForm) registerForm.addEventListener('submit', handleRegisterForm);
 
     // Attach logout if present
-    const navWrapper = document.querySelector('nav > div');
-    if (navWrapper) {
-      const userSection = navWrapper.children[2];
+    const userSection = document.querySelector('.user-menu');
+    if (userSection) {
       // If token present, fetch user and update nav accordingly
       if (token) {
         const user = await fetchCurrentUser(token);
