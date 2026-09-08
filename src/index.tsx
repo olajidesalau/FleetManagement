@@ -1107,6 +1107,30 @@ app.get('/api/messages/conversations', authenticate, async (c) => {
   }
 })
 
+app.get('/api/messages/contacts', authenticate, async (c) => {
+  try {
+    const user = c.get('user') as any
+    const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
+    const rows = await c.env.DB.prepare(`
+      SELECT u.id, u.full_name, u.email,
+        CASE WHEN u.role = 'admin' THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role = 'customer' THEN 'customer' ELSE u.role END AS contact_role,
+        d.driver_reference
+      FROM users u
+      LEFT JOIN drivers d ON d.user_id = u.id
+      WHERE u.id != ? AND u.status = 'active'
+        AND (u.role IN ('admin', 'customer') OR d.id IS NOT NULL)
+      ORDER BY contact_role, u.full_name
+    `).bind(user.userId).all()
+    const contacts = (rows.results || []).filter((contact: any) => {
+      if (current?.role === 'admin') return ['driver', 'customer'].includes(contact.contact_role)
+      return ['admin', 'driver', 'customer'].includes(contact.contact_role)
+    })
+    return c.json({ contacts })
+  } catch (error: any) {
+    return c.json({ error: 'Failed to fetch message contacts: ' + error.message }, 500)
+  }
+})
+
 // Get messages in conversation
 app.get('/api/messages/conversation/:conversationId', authenticate, async (c) => {
   try {
@@ -1750,7 +1774,17 @@ app.get('/messages', authenticate, async (c) => {
       })
     }
 
-    return c.render(<MessagesPage conversations={conversations} />)
+    const contacts = await c.env.DB.prepare(`
+      SELECT u.id, u.full_name, u.email,
+        CASE WHEN u.role = 'admin' THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role = 'customer' THEN 'customer' ELSE u.role END AS contact_role,
+        d.driver_reference
+      FROM users u LEFT JOIN drivers d ON d.user_id = u.id
+      WHERE u.id != ? AND u.status = 'active' AND (u.role IN ('admin', 'customer') OR d.id IS NOT NULL)
+      ORDER BY contact_role, u.full_name
+    `).bind(user.userId).all()
+    const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
+    const visibleContacts = (contacts.results || []).filter((contact: any) => current?.role === 'admin' ? ['driver', 'customer'].includes(contact.contact_role) : ['admin', 'driver', 'customer'].includes(contact.contact_role))
+    return c.render(<MessagesPage conversations={conversations} contacts={visibleContacts} currentRole={current?.role || ''} />)
   } catch (error: any) {
     return c.render(<MessagesPage conversations={[]} />)
   }
