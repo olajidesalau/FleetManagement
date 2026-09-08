@@ -9,3 +9,5 @@
 }
 .login-header .eyebrow { color: #527c47; }
 .login-input:focus { border-color: #527c47; box-shadow: 0 0 0 3px rgba(217,240,106,.55); }
+.register-page { min-height: 100vh; padding: 34px 20px; background-color: #17383b; background-image: radial-gradient(circle at 15% 20%, rgba(217,240,106,.16) 0 2px, transparent 3px), radial-gradient(circle at 78% 32%, rgba(143,212,202,.14) 0 1px, transparent 2px), linear-gradient(135deg, rgba(255,255,255,.06), transparent 45%), repeating-linear-gradient(115deg, rgba(217,240,106,.06) 0 1px, transparent 1px 13px); background-size: 31px 31px, 43px 43px, auto, auto; }
+.register-card { border: 1px solid rgba(143,212,202,.3); box-shadow: 0 22px 55px rgba(8,31,32,.38) !important; }

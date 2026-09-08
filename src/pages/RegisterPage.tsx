@@ -76,8 +76,8 @@ const termsSections = [
 
 export const RegisterPage = () => {
   return (
-    <div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem;">
-      <div style="max-width: 1120px; margin: 0 auto; background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 18px 45px rgba(0,0,0,0.2);">
+    <div class="register-page">
+      <div class="register-card" style="max-width: 1120px; margin: 0 auto; background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 18px 45px rgba(0,0,0,0.2);">
         <div style="text-align: center; margin-bottom: 2rem;">
           <h1 style="margin: 0; font-size: 2rem;">❄️</h1>
           <h2 style="margin: 0.5rem 0 0 0; font-size: 2rem; color: #1f2937;">Create Account</h2>
