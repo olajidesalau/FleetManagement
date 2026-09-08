@@ -98,6 +98,25 @@ async function updateNightlyMileage(db: D1Database) {
   return { processed }
 }
 
+async function runScheduledFleetScans(db: D1Database) {
+  const routes = await db.prepare(`SELECT id, route_reference, origin, destination, traffic_status, alternative_route FROM fleet_routes WHERE status NOT IN ('delivered', 'cancelled') AND scheduled_departure <= datetime('now', '+30 days') ORDER BY scheduled_departure LIMIT 200`).all()
+  let checked = 0
+  let alertsCreated = 0
+  for (const route of routes.results as any[]) {
+    checked += 1
+    if (route.traffic_status === 'slow' || route.traffic_status === 'disrupted' || route.traffic_status === 'closed') {
+      const title = route.traffic_status === 'closed' ? 'Route closed' : route.traffic_status === 'disrupted' ? 'Traffic disruption' : 'Heavy traffic'
+      const existing = await db.prepare(`SELECT id FROM alerts WHERE route_id = ? AND alert_type = 'traffic' AND status IN ('open', 'acknowledged') LIMIT 1`).bind(route.id).first()
+      if (!existing) {
+        await db.prepare(`INSERT INTO alerts (alert_type, severity, title, message, route_id, status, created_at, updated_at) VALUES ('traffic', ?, ?, ?, ?, 'open', datetime('now'), datetime('now'))`).bind(route.traffic_status === 'closed' ? 'critical' : 'warning', title, `${route.route_reference}: ${route.origin} to ${route.destination} requires traffic review.`, route.id).run()
+        alertsCreated += 1
+      }
+      await db.prepare(`INSERT INTO route_activity_history (route_id, activity_type, status_to, notes, recorded_at) VALUES (?, 'traffic_update', ?, ?, datetime('now'))`).bind(route.id, route.traffic_status, `Scheduled traffic scan: ${title}`).run()
+    }
+  }
+  return { checked, alertsCreated, scannedAt: new Date().toISOString() }
+}
+
 // Middleware: Check if user has specific role
 function requireRole(...roles: string[]) {
   return async (c: any, next: any) => {
@@ -2066,6 +2085,7 @@ app.get('/reviews/create', authenticate, async (c) => {
 export default {
   fetch: app.fetch,
   async scheduled(_event: ScheduledEvent, env: HonoEnv['Bindings']) {
+    await runScheduledFleetScans(env.DB)
     await updateNightlyMileage(env.DB)
   }
 }
