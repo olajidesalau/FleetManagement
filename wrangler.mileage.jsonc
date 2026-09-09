@@ -2,6 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "snow-fleet-mileage-scheduler",
   "main": "dist/_worker.js",
+  "assets": {
+    "directory": "./public"
+  },
   "compatibility_date": "2026-01-18",
   "compatibility_flags": ["nodejs_compat"],
   "triggers": {
