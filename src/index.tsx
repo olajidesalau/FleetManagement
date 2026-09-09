@@ -1583,17 +1583,23 @@ app.post('/api/fleet/vehicles/:vehicleId', async (c) => {
 
 app.post('/api/fleet/drivers', async (c) => {
   const form = await c.req.parseBody()
-  const required = ['driver_reference', 'licence_number', 'licence_expiry']
-  if (required.some(field => !String(form[field] || '').trim())) return c.text('Driver reference, licence number, and licence expiry are required', 400)
+  const required = ['driver_reference', 'full_name', 'email', 'licence_number', 'licence_expiry']
+  if (required.some(field => !String(form[field] || '').trim())) return c.text('Driver reference, full name, email, licence number, and licence expiry are required', 400)
   try {
-    let userId: number | null = null
-    if (form.email && form.full_name) {
+    const existingDriver = await c.env.DB.prepare('SELECT id FROM drivers WHERE driver_reference = ? OR licence_number = ?').bind(form.driver_reference, form.licence_number).first()
+    if (existingDriver) return c.text('A driver with this reference or licence number is already registered', 409)
+    const existingUser = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(form.email).first() as any
+    let userId: number
+    if (existingUser) {
+      userId = Number(existingUser.id)
+      await c.env.DB.prepare(`UPDATE users SET full_name = ?, phone = ?, updated_at = datetime('now') WHERE id = ?`).bind(form.full_name, form.phone || null, userId).run()
+    } else {
       const user = await c.env.DB.prepare(`INSERT INTO users (email, password, full_name, phone, role, status, email_verified) VALUES (?, ?, ?, ?, 'provider', 'active', 0)`).bind(form.email, hashPassword(String(form.email)), form.full_name, form.phone || null).run()
       userId = Number(user.meta.last_row_id)
     }
     await c.env.DB.prepare(`INSERT INTO drivers (user_id, driver_reference, licence_number, licence_expiry, phone, emergency_contact_name, emergency_contact_phone, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'available')`).bind(userId, form.driver_reference, form.licence_number, form.licence_expiry, form.phone || null, form.emergency_contact_name || null, form.emergency_contact_phone || null).run()
     return c.redirect('/drivers')
-  } catch (error: any) { return c.text(`Driver registration failed: ${error.message}`, 400) }
+  } catch (error: any) { return c.text(`Driver registration failed: ${error.message || 'Please check the driver details and try again.'}`, 400) }
 })
 
 app.post('/api/fleet/drivers/:driverId', async (c) => {
