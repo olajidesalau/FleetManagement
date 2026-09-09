@@ -10,13 +10,13 @@ export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
     <div class="fleet-dashboard">
       <section class="dashboard-header">
         <div>
-          <p class="eyebrow">Operations overview / Tuesday 08 October 2024</p>
+          <p class="eyebrow">Operations overview / <span data-current-date>Loading date...</span></p>
           <h1>Good morning, {managerName}</h1>
           <p class="fleet-slogan">Snow Logistics Limited, Delivering Confidence. Preserving Quality.</p>
           <p class="header-copy">A live view of every route, vehicle and temperature-sensitive delivery.</p>
         </div>
         <div class="header-actions">
-          <span class="sync-status"><span class="status-dot status-dot-live"></span>Live data · 10:42</span>
+          <span class="sync-status"><span class="status-dot status-dot-live"></span>Live data · <span data-current-time>--:--</span></span>
           <a class="button button-primary" href="/routes/new">+ Allocate route</a>
         </div>
       </section>

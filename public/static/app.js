@@ -1,5 +1,33 @@
 // Minimal client-side helpers (moved out oflined scripts)
 (function () {
+  const operationalTimeZone = 'Europe/London';
+  const formatOperationalTime = value => new Intl.DateTimeFormat('en-GB', {
+    timeZone: operationalTimeZone,
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(value));
+  const formatOperationalDate = value => new Intl.DateTimeFormat('en-GB', {
+    timeZone: operationalTimeZone,
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  }).format(new Date(value));
+
+  function updateOperationalClock() {
+    const now = new Date();
+    document.querySelectorAll('.sync-status').forEach(element => {
+      const legacyTimeNode = Array.from(element.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.textContent.includes('Live data · 10:42'));
+      if (legacyTimeNode) legacyTimeNode.textContent = `Live data · ${formatOperationalTime(now)}`;
+    });
+    document.querySelectorAll('[data-current-time]').forEach(element => {
+      element.textContent = formatOperationalTime(now);
+    });
+    document.querySelectorAll('[data-current-date]').forEach(element => {
+      element.textContent = formatOperationalDate(now);
+    });
+  }
+
   // Token helpers
   function setToken(token) {
     if (!token) return;
@@ -184,6 +212,25 @@
 
   // Attach handlers on DOM ready
   document.addEventListener('DOMContentLoaded', async function () {
+    updateOperationalClock();
+    window.setInterval(updateOperationalClock, 30000);
+
+    const monitoringGrid = document.querySelector('.monitor-grid');
+    if (monitoringGrid && !document.querySelector('[data-monitoring-metrics]')) {
+      const monitoringMetrics = document.createElement('section');
+      monitoringMetrics.className = 'panel monitoring-metrics-panel';
+      monitoringMetrics.dataset.monitoringMetrics = 'true';
+      monitoringMetrics.innerHTML = `
+        <div class="panel-heading"><div><p class="eyebrow">Operational health</p><h2>Route disruption and delivery metrics</h2><p class="table-caption">Current network performance across scheduled deliveries</p></div><a class="text-link" href="/alerts">Review alerts <span>→</span></a></div>
+        <div class="monitoring-metrics-grid">
+          <article><span class="metric-label">Route disruptions</span><strong class="metric-alert">03</strong><span class="metric-note metric-negative">2 traffic · 1 closure</span></article>
+          <article><span class="metric-label">Disruption rate</span><strong>12.5%</strong><span class="metric-note">3 of 24 active routes</span></article>
+          <article><span class="metric-label">Delivery completion</span><strong>85.7%</strong><span class="metric-note metric-positive">18 of 21 due today</span></article>
+          <article><span class="metric-label">Late deliveries</span><strong class="metric-alert">02</strong><span class="metric-note metric-negative">Average delay 14 min</span></article>
+        </div>`;
+      monitoringGrid.after(monitoringMetrics);
+    }
+
     // Set axios auth header if token exists
     const token = getToken();
     if (token) axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
@@ -253,7 +300,7 @@
           const payload = await response.json();
           const scan = payload.scan;
           const routes = payload.routes || [];
-          const formattedTime = new Date(scan.scanned_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const formattedTime = formatOperationalTime(scan.scanned_at);
 
           scanCount.textContent = `${scan.routes_found} route${scan.routes_found === 1 ? '' : 's'} found`;
           scanTime.textContent = `Scanned ${scan.sources_checked} sources at ${formattedTime}`;
@@ -264,7 +311,7 @@
           scanResults.innerHTML = routes.length ? routes.map(route => `
             <article class="scan-result-row">
               <div><a class="table-id" href="/routes/new?source=${encodeURIComponent(route.reference)}">${escapeHtml(route.reference)}</a><strong>${escapeHtml(route.origin)} <b>→</b> ${escapeHtml(route.destination)}</strong><span>${escapeHtml(route.company)} · ${escapeHtml(route.customer)} · ${escapeHtml(route.region)}</span></div>
-              <div><strong>${escapeHtml(route.date)}</strong><span>${escapeHtml(route.distance)} · ${escapeHtml(route.source)} source</span></div>
+              <div><strong>${escapeHtml(route.date)}</strong><span>${escapeHtml(route.distance)} · ${escapeHtml(route.source)} source</span><small>${escapeHtml(route.evidence || route.service || '')}</small>${route.sourceUrl ? `<a class="text-link" href="${escapeHtml(route.sourceUrl)}" target="_blank" rel="noreferrer">View source ↗</a>` : ''}</div>
               <div><span class="pill pill-green">${escapeHtml(route.fit)}</span><a class="table-action" href="/routes/new?source=${encodeURIComponent(route.reference)}">Review and allocate →</a></div>
             </article>`).join('') : '<strong>No new routes matched those scan settings.</strong><span>Try a wider look-ahead window or scan all sources.</span>';
 
@@ -322,7 +369,7 @@
           });
           if (!response.ok) throw new Error('Traffic scan failed');
           const result = await response.json();
-          const time = new Date(result.scanned_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const time = formatOperationalTime(result.scanned_at);
           trafficRoute.textContent = `${result.route.reference} · ${result.route.origin} to ${result.route.destination}`;
           trafficLabel.textContent = `Checked at ${time}`;
           trafficLive.textContent = result.disruption ? 'Disruption detected' : 'Route clear';
@@ -362,7 +409,7 @@
       const roleData = profilePage.querySelector('[data-profile-role-data]');
       const formStatus = profilePage.querySelector('[data-profile-form-status]');
       const escapeProfile = value => String(value ?? '--').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
-      const formatDate = value => value ? new Date(value).toLocaleDateString() : '--';
+      const formatDate = value => value ? formatOperationalDate(value) : '--';
 
       const renderRoleData = data => {
         const type = data.profile_type;
@@ -429,7 +476,7 @@
           temperaturePage.querySelector('[data-temperature-average]').textContent = average === '--' ? '--' : `${average} C`;
           temperaturePage.querySelector('[data-temperature-online]').textContent = readings.length;
           rows.innerHTML = readings.map(reading => { const temp = Number(reading.current_temperature); const min = Number(reading.target_temperature_min ?? 2); const max = Number(reading.target_temperature_max ?? 8); const ok = temp >= min && temp <= max; return `<tr><td><strong class="table-id">${reading.vehicle_reference}</strong><span>Temperature-controlled vehicle</span></td><td>${reading.driver_name || 'Unassigned'}</td><td><strong class="${ok ? 'text-good' : 'text-alert'}">${temp.toFixed(1)} C</strong><span>${ok ? 'Within range' : 'Outside target range'}</span></td><td>${min} C to ${max} C</td><td><span class="pill pill-green">${reading.sensor_status || 'online'}</span></td><td><span class="pill ${ok ? 'pill-green' : 'pill-red'}">${ok ? 'Normal' : 'Alert'}</span></td></tr>` }).join('');
-          updated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          updated.textContent = `Updated ${formatOperationalTime(new Date())}`;
         } catch { rows.innerHTML = '<tr><td colspan="6" class="table-loading">Temperature readings are temporarily unavailable.</td></tr>'; updated.textContent = 'Monitor unavailable'; }
         finally { refreshButton.disabled = false; }
       };
