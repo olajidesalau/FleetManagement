@@ -235,8 +235,23 @@
       const reports = document.createElement('section');
       reports.className = 'panel monitoring-reports-panel';
       reports.dataset.monitoringReports = 'true';
-      reports.innerHTML = '<div class="panel-heading"><div><p class="eyebrow">Report centre</p><h2>Generate an operational report</h2><p class="table-caption">Download the latest fleet view as CSV, PDF, or JSON.</p></div></div><div class="monitoring-report-actions"><a class="button button-secondary" href="/monitoring/export?report=daily&format=pdf&range=1">Daily report</a><a class="button button-secondary" href="/monitoring/export?report=drivers&format=csv&range=7">Drivers report</a><a class="button button-primary" href="/monitoring/export?report=routes&format=csv&range=7">Routes report</a></div>';
+      reports.innerHTML = '<div class="panel-heading"><div><p class="eyebrow">Report centre</p><h2>Generated operational reports</h2><p class="table-caption">Each report reflects the latest monitoring data and can be downloaded separately.</p></div></div><div class="monitoring-report-cards"><article class="monitoring-report-card" data-report-card="daily"><div><span class="eyebrow">Daily operations</span><h3>Daily report</h3><p data-report-status>Loading latest snapshot...</p></div><div class="report-preview" data-report-preview></div><div class="monitoring-report-actions"><a class="button button-secondary" href="/api/fleet/monitoring/export?report=daily&format=csv&range=1">CSV</a><a class="button button-secondary" href="/api/fleet/monitoring/export?report=daily&format=pdf&range=1">PDF</a><a class="button button-secondary" href="/api/fleet/monitoring/export?report=daily&format=json&range=1">JSON</a></div></article><article class="monitoring-report-card" data-report-card="drivers"><div><span class="eyebrow">People and assignments</span><h3>Drivers report</h3><p data-report-status>Loading latest snapshot...</p></div><div class="report-preview" data-report-preview></div><div class="monitoring-report-actions"><a class="button button-secondary" href="/api/fleet/monitoring/export?report=drivers&format=csv&range=7">CSV</a><a class="button button-secondary" href="/api/fleet/monitoring/export?report=drivers&format=pdf&range=7">PDF</a><a class="button button-secondary" href="/api/fleet/monitoring/export?report=drivers&format=json&range=7">JSON</a></div></article><article class="monitoring-report-card" data-report-card="routes"><div><span class="eyebrow">Network performance</span><h3>Routes report</h3><p data-report-status>Loading latest snapshot...</p></div><div class="report-preview" data-report-preview></div><div class="monitoring-report-actions"><a class="button button-secondary" href="/api/fleet/monitoring/export?report=routes&format=csv&range=7">CSV</a><a class="button button-secondary" href="/api/fleet/monitoring/export?report=routes&format=pdf&range=7">PDF</a><a class="button button-secondary" href="/api/fleet/monitoring/export?report=routes&format=json&range=7">JSON</a></div></article></div>';
       monitoringGrid.parentNode.insertBefore(reports, monitoringGrid.nextSibling);
+      const reportLabels = { daily: ['On-time delivery', 'Temperature compliance', 'Active routes'], drivers: ['Active drivers', 'Available drivers', 'Driver acceptance'], routes: ['Active routes', 'Disrupted routes', 'Late deliveries'] };
+      const escapeReportValue = value => String(value ?? '--').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+      reports.querySelectorAll('[data-report-card]').forEach(async card => {
+        const reportType = card.dataset.reportCard;
+        try {
+          const response = await fetch(`/api/fleet/monitoring/export?report=${reportType}&format=json&range=${reportType === 'daily' ? 1 : 7}`);
+          if (!response.ok) throw new Error('Report unavailable');
+          const report = await response.json();
+          card.querySelector('[data-report-status]').textContent = `Generated ${formatOperationalDate(report.generated_at)} at ${formatOperationalTime(report.generated_at)}`;
+          card.querySelector('[data-report-preview]').innerHTML = reportLabels[reportType].map(label => { const key = label.toLowerCase().replace(/[- ]/g, '_'); return `<div><span>${escapeReportValue(label)}</span><strong>${escapeReportValue(report[key])}</strong></div>`; }).join('');
+        } catch {
+          card.querySelector('[data-report-status]').textContent = 'Unable to load latest snapshot';
+          card.querySelector('[data-report-preview]').innerHTML = '<span>Use a download link to retry this report.</span>';
+        }
+      });
     }
 
     // Set axios auth header if token exists

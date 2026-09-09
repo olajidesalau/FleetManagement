@@ -142,6 +142,17 @@ h2 { margin: 0; font-size: 21px; }
 .monitoring-metrics-panel { margin-top: 19px; }
 .monitoring-reports-panel { margin-top: 19px; }
 .monitoring-report-actions { display: flex; flex-wrap: wrap; gap: 10px; padding: 0 25px 24px; }
+.monitoring-report-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border-top: 1px solid #edf1f1; background: var(--line); }
+.monitoring-report-card { display: grid; align-content: start; gap: 15px; min-width: 0; padding: 20px 24px 0; background: var(--surface); }
+.monitoring-report-card h3 { margin: 0 0 5px; font-family: Georgia, serif; font-size: 18px; font-weight: 400; }
+.monitoring-report-card p { margin: 0; color: var(--muted); font-size: 10px; }
+.monitoring-report-card .eyebrow { margin-bottom: 7px; }
+.report-preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); }
+.report-preview div { display: grid; gap: 6px; min-width: 0; padding: 10px; background: #fbfcfb; }
+.report-preview span { overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.report-preview strong { color: var(--ink); font-family: Georgia, serif; font-size: 16px; font-weight: 400; }
+.report-preview > span { padding: 10px; color: var(--muted); font-size: 10px; }
+.monitoring-report-card .monitoring-report-actions { padding: 0 0 20px; }
 .monitoring-metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #edf1f1; }
 .monitoring-metrics-grid article { min-height: 108px; padding: 18px 24px; border-right: 1px solid #edf1f1; }
 .monitoring-metrics-grid article:last-child { border-right: 0; }
@@ -324,6 +335,7 @@ h2 { margin: 0; font-size: 21px; }
 @media (max-width: 900px) { .nav-shell { flex-wrap: wrap; gap: 16px; padding: 17px 5vw; } .primary-nav { order: 3; width: 100%; min-height: 32px; gap: 20px; overflow-x: auto; } .primary-nav a { padding-bottom: 7px; white-space: nowrap; } .metric-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-columns, .bottom-grid { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .page-heading, .alert-page-grid, .monitor-grid, .scan-layout, .traffic-layout, .detail-grid, .profile-grid, .messages-layout { align-items: flex-start; grid-template-columns: 1fr; flex-direction: column; } .scan-result-row, .traffic-source-row { grid-template-columns: 1fr; gap: 12px; } }
 @media (max-width: 900px) { .monitoring-metrics-grid { grid-template-columns: repeat(2, 1fr); } .monitoring-metrics-grid article:nth-child(2) { border-right: 0; } }
+@media (max-width: 900px) { .monitoring-report-cards { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .fleet-dashboard { padding-top: 28px; } .dashboard-header { align-items: flex-start; flex-direction: column; } .header-actions { align-items: flex-start; flex-direction: column; gap: 12px; } .metric-grid { gap: 9px; } .metric-card { min-height: 122px; padding: 15px; } .metric-card strong { font-size: 25px; } .panel-heading, .route-row, .alert-item { padding-left: 16px; padding-right: 16px; } .route-row { grid-template-columns: 67px 1fr 48px; gap: 9px; } .route-main strong { font-size: 11px; } .user-name { display: none; } .activity-stats { margin-left: 16px; margin-right: 16px; } .page-heading { align-items: flex-start; } .page-heading .header-actions { align-items: flex-start; } .donut-metric { gap: 18px; padding-left: 16px; padding-right: 16px; } .scan-form, .traffic-form { grid-template-columns: 1fr; padding: 0 16px; } .scan-helper { margin-left: 16px; margin-right: 16px; } .scan-control-panel .panel-heading, .scan-summary-panel, .traffic-control-panel .panel-heading, .provider-status-panel { padding-left: 16px; padding-right: 16px; } .traffic-recommendation { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; } }
 @media (max-width: 560px) { .detail-facts { grid-template-columns: 1fr; } .management-detail { padding-left: 16px; padding-right: 16px; } .detail-help { margin-left: 16px; margin-right: 16px; } .alert-explanations { padding-left: 16px; padding-right: 16px; } .alert-guide > .button { margin-left: 16px; } }
 @media (max-width: 560px) { .form-panel { padding: 16px; } .form-grid { grid-template-columns: 1fr; } .form-grid label:last-child:nth-child(odd) { grid-column: auto; } .form-actions { justify-content: stretch; } .form-actions .button { flex: 1; text-align: center; } }
