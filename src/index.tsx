@@ -1719,7 +1719,7 @@ app.get('/admin/drivers', authenticate, requireRole('admin'), async (c) => {
 app.get('/customers', (c) => c.render(<CustomersPage />))
 app.get('/routes/scan', (c) => c.render(<RouteScanPage />))
 app.get('/routes/new', async (c) => {
-  const customers = await c.env.DB.prepare(`SELECT id, full_name FROM users WHERE role = 'customer' AND status = 'active' ORDER BY full_name`).all()
+  const customers = await c.env.DB.prepare(`SELECT id, full_name, status FROM users WHERE role = 'customer' ORDER BY full_name`).all()
   return c.render(<RouteFormPage customers={customers.results} />)
 })
 app.get('/routes/:routeId', (c) => c.render(<RouteDetailPage routeId={c.req.param('routeId')} />))
