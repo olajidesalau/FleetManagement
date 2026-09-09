@@ -130,6 +130,16 @@ function requireRole(...roles: string[]) {
   }
 }
 
+function requireAdmin() {
+  return async (c: any, next: any) => {
+    const user = c.get('user') as any
+    if (!user || !['admin', 'Fleet Manager'].includes(user.role)) {
+      return c.json({ error: 'Forbidden - insufficient permissions' }, 403)
+    }
+    await next()
+  }
+}
+
 // ============================================
 // AUTHENTICATION ROUTES
 // ============================================
@@ -308,7 +318,7 @@ app.get('/api/profile', authenticate, async (c) => {
     if (!user) return c.json({ error: 'User not found' }, 404)
 
     let roleData: Record<string, any> = {}
-    if (user.role === 'admin') {
+    if (['admin', 'Fleet Manager'].includes(user.role)) {
       const [users, routes, vehicles, alerts] = await Promise.all([
         c.env.DB.prepare(`SELECT COUNT(*) AS count FROM users`).first(),
         c.env.DB.prepare(`SELECT COUNT(*) AS count FROM fleet_routes WHERE status NOT IN ('delivered', 'cancelled')`).first(),
@@ -1165,7 +1175,7 @@ app.get('/api/messages/contacts', authenticate, async (c) => {
       ORDER BY contact_role, u.full_name
     `).bind(user.userId).all()
     const contacts = (rows.results || []).filter((contact: any) => {
-      if (current?.role === 'admin') return ['driver', 'customer'].includes(contact.contact_role)
+      if (['admin', 'Fleet Manager'].includes(current?.role)) return ['driver', 'customer'].includes(contact.contact_role)
       return ['admin', 'driver', 'customer'].includes(contact.contact_role)
     })
     return c.json({ contacts })
@@ -1608,7 +1618,7 @@ app.post('/api/fleet/drivers', async (c) => {
   } catch (error: any) { return c.text(`Driver registration failed: ${error.message || 'Please check the driver details and try again.'}`, 400) }
 })
 
-app.post('/api/fleet/drivers/:driverId', authenticate, requireRole('admin'), async (c) => {
+app.post('/api/fleet/drivers/:driverId', authenticate, requireAdmin(), async (c) => {
   const driverId = decodeURIComponent(c.req.param('driverId'))
   const form = await c.req.parseBody()
   const required = ['driver_reference', 'full_name', 'email', 'licence_number', 'licence_expiry']
@@ -1734,7 +1744,7 @@ app.get('/drivers', async (c) => {
     return c.render(<DriversPage />)
   }
 })
-app.get('/admin/drivers', authenticate, requireRole('admin'), async (c) => {
+app.get('/admin/drivers', authenticate, requireAdmin(), async (c) => {
   const drivers = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_number, d.licence_expiry, d.status, u.full_name, u.email, u.phone FROM drivers d JOIN users u ON u.id = d.user_id ORDER BY u.full_name`).all()
   return c.render(<AdminDriversPage drivers={drivers.results} />)
 })
@@ -1787,7 +1797,7 @@ app.get('/drivers/:driverId', async (c) => {
   if (!driver) return c.redirect('/drivers')
   return c.render(<DriverDetailPage driver={driver} />)
 })
-app.get('/drivers/:driverId/edit', authenticate, requireRole('admin'), async (c) => {
+app.get('/drivers/:driverId/edit', authenticate, requireAdmin(), async (c) => {
   const driverId = c.req.param('driverId')
   const driver = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_number, d.licence_expiry, d.phone, d.emergency_contact_name, d.emergency_contact_phone, d.status, u.full_name, u.email FROM drivers d LEFT JOIN users u ON u.id = d.user_id WHERE d.driver_reference = ? OR d.id = ?`).bind(driverId, Number(driverId) || 0).first()
   if (!driver) return c.redirect('/drivers')
@@ -1800,7 +1810,7 @@ app.get('/alerts/traffic', (c) => c.render(<TrafficPage />))
 app.get('/alerts/vehicle', (c) => c.render(<VehiclesPage />))
 app.get('/bookings/:bookingId', (c) => c.render(<BookingsPage bookings={[]} />))
 app.get('/notifications', (c) => c.render(<NotificationsPage notifications={[]} />))
-app.get('/admin/dashboard', authenticate, requireRole('admin'), async (c) => {
+app.get('/admin/dashboard', authenticate, requireAdmin(), async (c) => {
   const [users, providers, pending, bookings, completed, revenue] = await Promise.all([
     c.env.DB.prepare('SELECT COUNT(*) AS count FROM users').first(),
     c.env.DB.prepare("SELECT COUNT(*) AS count FROM provider_profiles WHERE approval_status = 'approved'").first(),
@@ -1811,19 +1821,19 @@ app.get('/admin/dashboard', authenticate, requireRole('admin'), async (c) => {
   ])
   return c.render(<AdminDashboardPage stats={{ total_users: (users as any)?.count, approved_providers: (providers as any)?.count, pending_approvals: (pending as any)?.count, total_bookings: (bookings as any)?.count, completed_bookings: (completed as any)?.count, platform_revenue: (revenue as any)?.total }} />)
 })
-app.get('/admin/users', authenticate, requireRole('admin'), async (c) => {
+app.get('/admin/users', authenticate, requireAdmin(), async (c) => {
   const search = c.req.query('search') || ''
   const role = c.req.query('role') || ''
   const status = c.req.query('status') || ''
   const users = await c.env.DB.prepare(`SELECT id, email, full_name, phone, role, status, created_at FROM users WHERE (? = '' OR full_name LIKE '%' || ? || '%' OR email LIKE '%' || ? || '%') AND (? = '' OR role = ?) AND (? = '' OR status = ?) ORDER BY created_at DESC LIMIT 200`).bind(search, search, search, role, role, status, status).all()
   return c.render(<AdminUsersPage users={users.results} />)
 })
-app.get('/admin/providers', authenticate, requireRole('admin'), async (c) => {
+app.get('/admin/providers', authenticate, requireAdmin(), async (c) => {
   const status = c.req.query('status') || ''
   const providers = await c.env.DB.prepare(`SELECT p.*, u.full_name, u.email, u.phone FROM provider_profiles p JOIN users u ON u.id = p.user_id WHERE (? = '' OR p.approval_status = ?) ORDER BY p.created_at DESC LIMIT 200`).bind(status, status).all()
   return c.render(<AdminProvidersPage providers={providers.results} />)
 })
-app.get('/admin/bookings', authenticate, requireRole('admin'), async (c) => {
+app.get('/admin/bookings', authenticate, requireAdmin(), async (c) => {
   const bookings = await c.env.DB.prepare(`SELECT b.*, s.service_name, u.full_name AS customer_name FROM bookings b LEFT JOIN services s ON s.id = b.service_id LEFT JOIN users u ON u.id = b.customer_id ORDER BY b.created_at DESC LIMIT 200`).all()
   return c.render(<AdminBookingsPage bookings={bookings.results} />)
 })
@@ -1855,7 +1865,7 @@ app.get('/admin/providers/:providerId', authenticate, requireRole('admin'), asyn
                         window.location.href = '/provider-dashboard.html';
                     } else if (currentUser.role === 'customer') {
                         window.location.href = '/customer-dashboard.html';
-                    } else if (currentUser.role === 'admin') {
+                    } else if (['admin', 'Fleet Manager'].includes(currentUser.role)) {
                         window.location.href = '/admin-dashboard.html';
                     }
                 }
@@ -2062,7 +2072,7 @@ app.get('/messages', authenticate, async (c) => {
       ORDER BY contact_role, u.full_name
     `).bind(user.userId).all()
     const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
-    const visibleContacts = (contacts.results || []).filter((contact: any) => current?.role === 'admin' ? ['driver', 'customer'].includes(contact.contact_role) : ['admin', 'driver', 'customer'].includes(contact.contact_role))
+    const visibleContacts = (contacts.results || []).filter((contact: any) => ['admin', 'Fleet Manager'].includes(current?.role) ? ['driver', 'customer'].includes(contact.contact_role) : ['admin', 'driver', 'customer'].includes(contact.contact_role))
     return c.render(<MessagesPage conversations={conversations} contacts={visibleContacts} currentRole={current?.role || ''} />)
   } catch (error: any) {
     return c.render(<MessagesPage conversations={[]} />)
