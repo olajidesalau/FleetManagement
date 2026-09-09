@@ -229,6 +229,18 @@ h2 { margin: 0; font-size: 21px; }
 .timeline small { color: var(--muted); font-size: 10px; }
 .detail-actions { display: grid; gap: 10px; padding: 0 25px 25px; }
 .detail-actions .button { text-align: center; }
+.management-detail { padding: 0 25px 25px; color: #52666a; font-size: 13px; line-height: 1.65; }
+.management-detail p { margin: 0 0 20px; max-width: 680px; }
+.detail-facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); }
+.detail-facts div { display: grid; gap: 5px; min-height: 66px; padding: 13px; background: #fbfcfb; }
+.detail-facts span { color: var(--muted); font-size: 10px; }
+.detail-facts strong { color: var(--ink); font-size: 12px; font-weight: 600; }
+.detail-help { margin: 0 25px 25px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.alert-explanations { display: grid; gap: 14px; padding: 0 25px 22px; }
+.alert-explanations div { display: grid; gap: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
+.alert-explanations strong { color: var(--ink); font-size: 12px; }
+.alert-explanations span { color: #52666a; font-size: 11px; line-height: 1.5; }
+.alert-guide > .button { margin-left: 25px; }
 .delivery-time { color: var(--teal); }
 .delivery-form-panel { padding: 25px; }
 .delivery-form { display: grid; gap: 17px; }
@@ -311,6 +323,7 @@ h2 { margin: 0; font-size: 21px; }
 @media (max-width: 900px) { .page-heading, .alert-page-grid, .monitor-grid, .scan-layout, .traffic-layout, .detail-grid, .profile-grid, .messages-layout { align-items: flex-start; grid-template-columns: 1fr; flex-direction: column; } .scan-result-row, .traffic-source-row { grid-template-columns: 1fr; gap: 12px; } }
 @media (max-width: 900px) { .monitoring-metrics-grid { grid-template-columns: repeat(2, 1fr); } .monitoring-metrics-grid article:nth-child(2) { border-right: 0; } }
 @media (max-width: 560px) { .fleet-dashboard { padding-top: 28px; } .dashboard-header { align-items: flex-start; flex-direction: column; } .header-actions { align-items: flex-start; flex-direction: column; gap: 12px; } .metric-grid { gap: 9px; } .metric-card { min-height: 122px; padding: 15px; } .metric-card strong { font-size: 25px; } .panel-heading, .route-row, .alert-item { padding-left: 16px; padding-right: 16px; } .route-row { grid-template-columns: 67px 1fr 48px; gap: 9px; } .route-main strong { font-size: 11px; } .user-name { display: none; } .activity-stats { margin-left: 16px; margin-right: 16px; } .page-heading { align-items: flex-start; } .page-heading .header-actions { align-items: flex-start; } .donut-metric { gap: 18px; padding-left: 16px; padding-right: 16px; } .scan-form, .traffic-form { grid-template-columns: 1fr; padding: 0 16px; } .scan-helper { margin-left: 16px; margin-right: 16px; } .scan-control-panel .panel-heading, .scan-summary-panel, .traffic-control-panel .panel-heading, .provider-status-panel { padding-left: 16px; padding-right: 16px; } .traffic-recommendation { grid-template-columns: 1fr; margin-left: 16px; margin-right: 16px; } }
+@media (max-width: 560px) { .detail-facts { grid-template-columns: 1fr; } .management-detail { padding-left: 16px; padding-right: 16px; } .detail-help { margin-left: 16px; margin-right: 16px; } .alert-explanations { padding-left: 16px; padding-right: 16px; } .alert-guide > .button { margin-left: 16px; } }
 @media (max-width: 560px) { .form-panel { padding: 16px; } .form-grid { grid-template-columns: 1fr; } .form-grid label:last-child:nth-child(odd) { grid-column: auto; } .form-actions { justify-content: stretch; } .form-actions .button { flex: 1; text-align: center; } }
 @media (max-width: 560px) { .profile-card, .role-card, .profile-edit-panel { padding: 16px; } .role-data { grid-template-columns: 1fr; } .profile-form { grid-template-columns: 1fr; } .profile-form-status { grid-column: auto; } }
 @media (max-width: 560px) { .conversation-list-item { padding-left: 16px; padding-right: 16px; } .message-intro-panel { min-height: 240px; padding: 25px; } }
