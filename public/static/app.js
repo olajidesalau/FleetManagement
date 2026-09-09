@@ -254,6 +254,10 @@
       });
     }
 
+    if (monitoringGrid) {
+      window.setInterval(() => window.location.reload(), 600000);
+    }
+
     // Set axios auth header if token exists
     const token = getToken();
     if (token) axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
