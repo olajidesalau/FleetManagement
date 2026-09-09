@@ -99,11 +99,13 @@ async function updateNightlyMileage(db: D1Database) {
 }
 
 async function runScheduledFleetScans(db: D1Database) {
+  try { await db.prepare(`ALTER TABLE fleet_routes ADD COLUMN last_scanned_at DATETIME`).run() } catch {}
   const routes = await db.prepare(`SELECT id, route_reference, origin, destination, traffic_status, alternative_route FROM fleet_routes WHERE status NOT IN ('delivered', 'cancelled') AND scheduled_departure <= datetime('now', '+30 days') ORDER BY scheduled_departure LIMIT 200`).all()
   let checked = 0
   let alertsCreated = 0
   for (const route of routes.results as any[]) {
     checked += 1
+    await db.prepare(`UPDATE fleet_routes SET last_scanned_at = datetime('now'), updated_at = datetime('now') WHERE id = ?`).bind(route.id).run()
     if (route.traffic_status === 'slow' || route.traffic_status === 'disrupted' || route.traffic_status === 'closed') {
       const title = route.traffic_status === 'closed' ? 'Route closed' : route.traffic_status === 'disrupted' ? 'Traffic disruption' : 'Heavy traffic'
       const existing = await db.prepare(`SELECT id FROM alerts WHERE route_id = ? AND alert_type = 'traffic' AND status IN ('open', 'acknowledged') LIMIT 1`).bind(route.id).first()
