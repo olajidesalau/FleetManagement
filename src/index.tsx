@@ -1518,35 +1518,30 @@ app.get('/api/fleet/temperature', async (c) => {
 app.get('/api/fleet/monitoring/export', async (c) => {
   const format = c.req.query('format') || 'csv'
   const range = Number(c.req.query('range') || 7)
-  const report = { generated_at: new Date().toISOString(), range_days: range, on_time_delivery: '96.4%', temperature_compliance: '98.7%', average_route_time: '3h 42m', driver_acceptance: '89%', active_routes: 24, temperature_alerts: 2 }
+  const reportType = ['daily', 'drivers', 'routes'].includes(c.req.query('report')) ? c.req.query('report') as 'daily' | 'drivers' | 'routes' : 'daily'
+  const report = reportType === 'drivers'
+    ? { report_type: reportType, report_title: 'Driver performance report', generated_at: new Date().toISOString(), range_days: range, active_drivers: 18, available_drivers: 6, driver_acceptance: '89%', assigned_routes: 12, licence_checks_due: 2 }
+    : reportType === 'routes'
+      ? { report_type: reportType, report_title: 'Route performance report', generated_at: new Date().toISOString(), range_days: range, active_routes: 24, completed_routes: 18, disrupted_routes: 3, disruption_rate: '12.5%', late_deliveries: 2, average_route_time: '3h 42m' }
+      : { report_type: reportType, report_title: 'Daily fleet report', generated_at: new Date().toISOString(), range_days: range, on_time_delivery: '96.4%', temperature_compliance: '98.7%', average_route_time: '3h 42m', driver_acceptance: '89%', active_routes: 24, temperature_alerts: 2 }
   if (format === 'json') return c.json(report)
   if (format === 'pdf') {
     const lines = [
-      'Snow Fleet Management Monitoring Report',
+      `Snow Fleet Management ${report.report_title}`,
       `Generated: ${report.generated_at}`,
       `Reporting range: last ${report.range_days} days`,
       '',
-      'DELIVERY PERFORMANCE',
-      `On-time delivery: ${report.on_time_delivery}`,
-      `Average route time: ${report.average_route_time}`,
-      `Active routes: ${report.active_routes}`,
-      '',
-      'COLD-CHAIN PERFORMANCE',
-      `Temperature compliance: ${report.temperature_compliance}`,
-      `Temperature alerts: ${report.temperature_alerts}`,
-      '',
-      'DRIVER PERFORMANCE',
-      `Driver acceptance: ${report.driver_acceptance}`,
+      ...Object.entries(report).filter(([key]) => !['report_type', 'report_title', 'generated_at', 'range_days'].includes(key)).map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value}`),
       '',
       'This report contains the monitoring metrics available from Snow Fleet Management.'
     ]
     const escapePdf = (value: string) => value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
     const content = `BT /F1 18 Tf 54 740 Td (${escapePdf(lines[0])}) Tj /F1 10 Tf 0 -24 Td ${lines.slice(1).map(line => `(${escapePdf(line)}) Tj 0 -16 Td`).join(' ')} ET`
     const pdf = `%PDF-1.4\n1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj\n2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj\n3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /Contents 4 0 R >>endobj\n4 0 obj<< /Length ${content.length} >>stream\n${content}\nendstream endobj\ntrailer<< /Root 1 0 R >>\n%%EOF`
-    return new Response(pdf, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="snow-fleet-monitoring-${range}d.pdf"` } })
+    return new Response(pdf, { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': `attachment; filename="snow-fleet-${reportType}-${range}d.pdf"` } })
   }
-  const csv = `Metric,Value\nGenerated at,${report.generated_at}\nRange days,${report.range_days}\nOn-time delivery,${report.on_time_delivery}\nTemperature compliance,${report.temperature_compliance}\nAverage route time,${report.average_route_time}\nDriver acceptance,${report.driver_acceptance}\nActive routes,${report.active_routes}\nTemperature alerts,${report.temperature_alerts}\n`
-  return new Response(csv, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="snow-fleet-monitoring-${range}d.csv"` } })
+  const csv = Object.entries(report).map(([key, value]) => `${key.replace(/_/g, ' ')},${value}`).join('\n') + '\n'
+  return new Response(`Metric,Value\n${csv}`, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="snow-fleet-${reportType}-${range}d.csv"` } })
 })
 
 app.post('/api/fleet/mileage/nightly', authenticate, requireRole('admin'), async (c) => {

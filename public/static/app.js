@@ -231,6 +231,14 @@
       monitoringGrid.after(monitoringMetrics);
     }
 
+    if (document.querySelector('.monitor-grid') && !document.querySelector('[data-monitoring-reports]')) {
+      const reports = document.createElement('section');
+      reports.className = 'panel monitoring-reports-panel';
+      reports.dataset.monitoringReports = 'true';
+      reports.innerHTML = '<div class="panel-heading"><div><p class="eyebrow">Report centre</p><h2>Generate an operational report</h2><p class="table-caption">Download the latest fleet view as CSV, PDF, or JSON.</p></div></div><div class="monitoring-report-actions"><a class="button button-secondary" href="/monitoring/export?report=daily&format=pdf&range=1">Daily report</a><a class="button button-secondary" href="/monitoring/export?report=drivers&format=csv&range=7">Drivers report</a><a class="button button-primary" href="/monitoring/export?report=routes&format=csv&range=7">Routes report</a></div>';
+      monitoringGrid.parentNode.insertBefore(reports, monitoringGrid.nextSibling);
+    }
+
     // Set axios auth header if token exists
     const token = getToken();
     if (token) axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
