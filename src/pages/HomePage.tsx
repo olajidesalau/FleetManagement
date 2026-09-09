@@ -5,9 +5,8 @@ const routes = [
 ]
 
 export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
-  const isFleetManager = !currentUser || currentUser.role === 'admin'
-  const firstName = currentUser?.full_name?.trim().split(/\s+/)[0] || 'there'
-  const greeting = isFleetManager ? 'Welcome back, Fleet Manager' : `Welcome back, ${firstName}`
+  const firstName = currentUser?.full_name?.trim().split(/\s+/)[0] || 'Fleet Manager'
+  const greeting = `Welcome back, ${firstName}`
   return (
     <div class="fleet-dashboard">
       <section class="dashboard-header">
