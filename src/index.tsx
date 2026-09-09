@@ -1608,7 +1608,7 @@ app.post('/api/fleet/drivers', async (c) => {
   } catch (error: any) { return c.text(`Driver registration failed: ${error.message || 'Please check the driver details and try again.'}`, 400) }
 })
 
-app.post('/api/fleet/drivers/:driverId', async (c) => {
+app.post('/api/fleet/drivers/:driverId', authenticate, requireRole('admin'), async (c) => {
   const driverId = decodeURIComponent(c.req.param('driverId'))
   const form = await c.req.parseBody()
   const required = ['driver_reference', 'full_name', 'email', 'licence_number', 'licence_expiry']
@@ -1769,7 +1769,7 @@ app.get('/drivers/:driverId', async (c) => {
   if (!driver) return c.redirect('/drivers')
   return c.render(<DriverDetailPage driver={driver} />)
 })
-app.get('/drivers/:driverId/edit', async (c) => {
+app.get('/drivers/:driverId/edit', authenticate, requireRole('admin'), async (c) => {
   const driverId = c.req.param('driverId')
   const driver = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_number, d.licence_expiry, d.phone, d.emergency_contact_name, d.emergency_contact_phone, d.status, u.full_name, u.email FROM drivers d LEFT JOIN users u ON u.id = d.user_id WHERE d.driver_reference = ? OR d.id = ?`).bind(driverId, Number(driverId) || 0).first()
   if (!driver) return c.redirect('/drivers')
