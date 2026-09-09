@@ -5,13 +5,15 @@ const routes = [
 ]
 
 export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
-  const managerName = currentUser?.full_name || 'Fleet Manager'
+  const isFleetManager = !currentUser || currentUser.role === 'admin'
+  const firstName = currentUser?.full_name?.trim().split(/\s+/)[0] || 'there'
+  const greeting = isFleetManager ? 'Welcome back, Fleet Manager' : `Welcome back, ${firstName}`
   return (
     <div class="fleet-dashboard">
       <section class="dashboard-header">
         <div>
           <p class="eyebrow">Operations overview / <span data-current-date>Loading date...</span></p>
-          <h1>Good morning, {managerName}</h1>
+          <h1>{greeting}</h1>
           <p class="fleet-slogan">Snow Logistics Limited, Delivering Confidence. Preserving Quality.</p>
           <p class="header-copy">A live view of every route, vehicle and temperature-sensitive delivery.</p>
         </div>
