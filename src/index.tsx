@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { D1Database } from '@cloudflare/workers-types'
-import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
+import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, DriverEditPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
 import { renderer } from './renderer' 
 
 type Bindings = {
@@ -1596,6 +1596,21 @@ app.post('/api/fleet/drivers', async (c) => {
   } catch (error: any) { return c.text(`Driver registration failed: ${error.message}`, 400) }
 })
 
+app.post('/api/fleet/drivers/:driverId', async (c) => {
+  const driverId = decodeURIComponent(c.req.param('driverId'))
+  const form = await c.req.parseBody()
+  const required = ['driver_reference', 'full_name', 'email', 'licence_number', 'licence_expiry']
+  if (required.some(field => !String(form[field] || '').trim())) return c.text('Driver name, email, reference, licence number, and licence expiry are required', 400)
+  const status = ['available', 'assigned', 'off_duty', 'suspended'].includes(String(form.status)) ? String(form.status) : 'available'
+  try {
+    const driver = await c.env.DB.prepare('SELECT id, user_id FROM drivers WHERE driver_reference = ? OR id = ?').bind(driverId, Number(driverId) || 0).first() as any
+    if (!driver) return c.text('Driver not found', 404)
+    await c.env.DB.prepare(`UPDATE drivers SET driver_reference = ?, licence_number = ?, licence_expiry = ?, phone = ?, emergency_contact_name = ?, emergency_contact_phone = ?, status = ?, updated_at = datetime('now') WHERE id = ?`).bind(form.driver_reference, form.licence_number, form.licence_expiry, form.phone || null, form.emergency_contact_name || null, form.emergency_contact_phone || null, status, driver.id).run()
+    if (driver.user_id) await c.env.DB.prepare(`UPDATE users SET full_name = ?, email = ?, phone = ?, updated_at = datetime('now') WHERE id = ?`).bind(form.full_name, form.email, form.phone || null, driver.user_id).run()
+    return c.redirect(`/drivers/${encodeURIComponent(String(form.driver_reference))}`)
+  } catch (error: any) { return c.text(`Driver update failed: ${error.message}`, 400) }
+})
+
 app.post('/api/fleet/customers', async (c) => {
   const form = await c.req.parseBody()
   const required = ['full_name', 'email', 'password']
@@ -1739,7 +1754,12 @@ app.get('/drivers/:driverId', async (c) => {
   if (!driver) return c.redirect('/drivers')
   return c.render(<DriverDetailPage driver={driver} />)
 })
-app.get('/drivers/:driverId/edit', (c) => c.render(<ManagementPage title={`Edit driver ${c.req.param('driverId')}`} message="Update driver contact, licence, and availability information." identifier={c.req.param('driverId')} backHref="/drivers" />))
+app.get('/drivers/:driverId/edit', async (c) => {
+  const driverId = c.req.param('driverId')
+  const driver = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_number, d.licence_expiry, d.phone, d.emergency_contact_name, d.emergency_contact_phone, d.status, u.full_name, u.email FROM drivers d LEFT JOIN users u ON u.id = d.user_id WHERE d.driver_reference = ? OR d.id = ?`).bind(driverId, Number(driverId) || 0).first()
+  if (!driver) return c.redirect('/drivers')
+  return c.render(<DriverEditPage driver={driver} />)
+})
 app.get('/customers/new', (c) => c.render(<CustomerFormPage />))
 app.get('/customers/:customerId', (c) => c.render(<ManagementPage title={`Customer ${c.req.param('customerId')}`} message="Review customer routes, services, and delivery history." identifier={c.req.param('customerId')} backHref="/customers" />))
 app.get('/customers/:customerId/edit', (c) => c.render(<ManagementPage title={`Edit customer ${c.req.param('customerId')}`} message="Update customer contacts and cold-chain delivery requirements." identifier={c.req.param('customerId')} backHref="/customers" />))
