@@ -1588,10 +1588,13 @@ app.post('/api/fleet/drivers', async (c) => {
   try {
     const existingDriver = await c.env.DB.prepare('SELECT id FROM drivers WHERE driver_reference = ? OR licence_number = ?').bind(form.driver_reference, form.licence_number).first()
     if (existingDriver) return c.text('A driver with this reference or licence number is already registered', 409)
-    const existingUser = await c.env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(form.email).first() as any
+    const existingUser = await c.env.DB.prepare('SELECT id, role FROM users WHERE email = ?').bind(form.email).first() as any
     let userId: number
     if (existingUser) {
       userId = Number(existingUser.id)
+      const linkedDriver = await c.env.DB.prepare('SELECT driver_reference FROM drivers WHERE user_id = ?').bind(userId).first() as any
+      if (linkedDriver) return c.text(`This email is already registered to driver ${linkedDriver.driver_reference}`, 409)
+      if (existingUser.role === 'customer') return c.text('This email belongs to a customer account. Use a different driver email address.', 409)
       await c.env.DB.prepare(`UPDATE users SET full_name = ?, phone = ?, updated_at = datetime('now') WHERE id = ?`).bind(form.full_name, form.phone || null, userId).run()
     } else {
       const user = await c.env.DB.prepare(`INSERT INTO users (email, password, full_name, phone, role, status, email_verified) VALUES (?, ?, ?, ?, 'provider', 'active', 0)`).bind(form.email, hashPassword(String(form.email)), form.full_name, form.phone || null).run()
