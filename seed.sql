@@ -25,6 +25,27 @@ INSERT OR IGNORE INTO users (id, email, password, full_name, phone, role, status
 (8, 'david.brown@email.uk', 'hashed_password_123', 'David Brown', '+447700900008', 'customer', 'active', 1, datetime('now', '-3 months')),
 (9, 'lisa.taylor@email.uk', 'hashed_password_123', 'Lisa Taylor', '+447700900009', 'customer', 'active', 1, datetime('now', '-2 months'));
 
+-- Prospectus customers available for route allocation
+INSERT OR IGNORE INTO users (email, password, full_name, phone, role, status, email_verified, created_at) VALUES
+('LiverpoolCustomerService@bidfood.co.uk', 'prospectus_customer_placeholder', 'Bidfood Liverpool', '0370 3663 400', 'customer', 'active', 0, datetime('now')),
+('manchestercustomerservice@bidfood.co.uk', 'prospectus_customer_placeholder', 'Bidfood Manchester', '0370 366 3400', 'customer', 'active', 0, datetime('now')),
+('contact@bestfoodlogistics.com', 'prospectus_customer_placeholder', 'Best Food Logistics', '0161 627 0050', 'customer', 'active', 0, datetime('now')),
+('enquiries@supplychain.nhs.uk', 'prospectus_customer_placeholder', 'NHS Supply Chain', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@brake.co.uk', 'prospectus_customer_placeholder', 'Brakes Warrington', NULL, 'customer', 'active', 0, datetime('now')),
+('sales@petergreenchilled.co.uk', 'prospectus_customer_placeholder', 'Peter Green Chilled', '+44 1749 830 824', 'customer', 'active', 0, datetime('now')),
+('contact@americold.com', 'prospectus_customer_placeholder', 'Americold UK', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@onelineage.com', 'prospectus_customer_placeholder', 'Lineage Logistics UK', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@culina.co.uk', 'prospectus_customer_placeholder', 'Culina Group', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@reedboardall.co.uk', 'prospectus_customer_placeholder', 'Reed Boardall', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@newcold.com', 'prospectus_customer_placeholder', 'NewCold', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@dfds.com', 'prospectus_customer_placeholder', 'DFDS Logistics', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@fowlerwelch.co.uk', 'prospectus_customer_placeholder', 'Fowler Welch', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@freshdirect.co.uk', 'prospectus_customer_placeholder', 'Fresh Direct', NULL, 'customer', 'active', 0, datetime('now')),
+('contact@booker.co.uk', 'prospectus_customer_placeholder', 'Booker Wholesale', NULL, 'customer', 'active', 0, datetime('now')),
+('suppliers@supplying2nhs.org', 'prospectus_customer_placeholder', 'Health Procurement Portal', NULL, 'customer', 'active', 0, datetime('now')),
+('england.supplier@nhs.net', 'prospectus_customer_placeholder', 'NHS England Supplier Team', NULL, 'customer', 'active', 0, datetime('now')),
+('food.enquiries@supplychain.nhs.uk', 'prospectus_customer_placeholder', 'NHS Supply Chain Food', NULL, 'customer', 'active', 0, datetime('now'));
+
 -- ============================================
 -- 2. PROVIDER PROFILES
 -- ============================================

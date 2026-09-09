@@ -1,0 +1,20 @@
+-- Register the public prospectus organizations as selectable fleet customers.
+INSERT OR IGNORE INTO users (email, password, full_name, phone, role, status, email_verified, created_at) VALUES
+('LiverpoolCustomerService@bidfood.co.uk', 'prospectus_customer_placeholder', 'Bidfood Liverpool', '0370 3663 400', 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('manchestercustomerservice@bidfood.co.uk', 'prospectus_customer_placeholder', 'Bidfood Manchester', '0370 366 3400', 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@bestfoodlogistics.com', 'prospectus_customer_placeholder', 'Best Food Logistics', '0161 627 0050', 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('enquiries@supplychain.nhs.uk', 'prospectus_customer_placeholder', 'NHS Supply Chain', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@brake.co.uk', 'prospectus_customer_placeholder', 'Brakes Warrington', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('sales@petergreenchilled.co.uk', 'prospectus_customer_placeholder', 'Peter Green Chilled', '+44 1749 830 824', 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@americold.com', 'prospectus_customer_placeholder', 'Americold UK', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@onelineage.com', 'prospectus_customer_placeholder', 'Lineage Logistics UK', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@culina.co.uk', 'prospectus_customer_placeholder', 'Culina Group', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@reedboardall.co.uk', 'prospectus_customer_placeholder', 'Reed Boardall', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@newcold.com', 'prospectus_customer_placeholder', 'NewCold', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@dfds.com', 'prospectus_customer_placeholder', 'DFDS Logistics', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@fowlerwelch.co.uk', 'prospectus_customer_placeholder', 'Fowler Welch', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@freshdirect.co.uk', 'prospectus_customer_placeholder', 'Fresh Direct', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('contact@booker.co.uk', 'prospectus_customer_placeholder', 'Booker Wholesale', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('suppliers@supplying2nhs.org', 'prospectus_customer_placeholder', 'Health Procurement Portal', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('england.supplier@nhs.net', 'prospectus_customer_placeholder', 'NHS England Supplier Team', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP),
+('food.enquiries@supplychain.nhs.uk', 'prospectus_customer_placeholder', 'NHS Supply Chain Food', NULL, 'customer', 'active', 0, CURRENT_TIMESTAMP);
