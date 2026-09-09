@@ -114,6 +114,9 @@
     const role = user.role || 'customer';
     const adminLink = document.querySelector('[data-admin-link]');
     if (adminLink) adminLink.hidden = role !== 'admin';
+    document.querySelectorAll('[data-admin-only]').forEach(element => {
+      element.hidden = role !== 'admin';
+    });
     const roleLinks = linksByRole[role] || [];
     roleLinks.forEach(l => {
       const a = document.createElement('a');

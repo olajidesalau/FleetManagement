@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { D1Database } from '@cloudflare/workers-types'
-import { HomePage, ProvidersSearchPage, ProviderProfilePage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
+import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
 import { renderer } from './renderer' 
 
 type Bindings = {
@@ -1690,6 +1690,10 @@ app.get('/alerts/temperature', (c) => c.redirect('/temperature'))
 app.get('/alerts', (c) => c.render(<AlertsPage />))
 app.get('/monitoring', (c) => c.render(<MonitoringPage />))
 app.get('/drivers', (c) => c.render(<DriversPage />))
+app.get('/admin/drivers', authenticate, requireRole('admin'), async (c) => {
+  const drivers = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_number, d.licence_expiry, d.status, u.full_name, u.email, u.phone FROM drivers d JOIN users u ON u.id = d.user_id ORDER BY u.full_name`).all()
+  return c.render(<AdminDriversPage drivers={drivers.results} />)
+})
 app.get('/customers', (c) => c.render(<CustomersPage />))
 app.get('/routes/scan', (c) => c.render(<RouteScanPage />))
 app.get('/routes/new', (c) => c.render(<RouteFormPage />))
@@ -1939,7 +1943,7 @@ app.get('/providers/:userId', async (c) => {
       SELECT * FROM services WHERE provider_id = ? AND is_active = 1
     `).bind(provider.id).all()
 
-    return c.render(<ProviderProfilePage provider={provider} services={services.results} />)
+    return c.render(<ManagementPage title={provider.business_name || provider.full_name || `Provider ${userId}`} eyebrow="Provider profile" identifier={String(userId)} message="Review provider verification, service coverage, and active offerings." backHref="/providers/search" />)
   } catch (error: any) {
     return c.json({ error: 'Failed to fetch provider page: ' + error.message }, 500)
   }
