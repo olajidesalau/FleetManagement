@@ -1655,7 +1655,7 @@ app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
     return c.text('Invalid delivery form. Please upload a proof photo and try again.', 400)
   }
   const deliveryTime = String(form.actual_arrival || '').trim()
-  if (!routeId || !deliveryTime) return c.text('Delivery timestamp is required', 400)
+  if (!Number.isFinite(routeId) || routeId <= 0 || !deliveryTime) return c.text('Delivery timestamp is required', 400)
   const milesTravelled = Number(form.miles_travelled)
   if (!Number.isFinite(milesTravelled) || milesTravelled < 0) return c.text('Actual trip mileage is required and must be zero or greater', 400)
   const proofPhoto = form.proof_photo as File | undefined
@@ -1737,9 +1737,12 @@ app.get('/routes/new', async (c) => {
 app.get('/routes/:routeId', (c) => c.render(<RouteDetailPage routeId={c.req.param('routeId')} />))
 app.get('/deliveries/:routeId', async (c) => {
   const routeId = Number(c.req.param('routeId'))
-  const safeRouteId = Number.isFinite(routeId) && routeId > 0 ? routeId : 0
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Delivery confirmation</title><link rel="stylesheet" href="/static/style.css"></head><body><nav class="topbar"><div class="nav-shell"><div class="brand-lockup"><span class="brand-mark">S</span><span>Snow Fleet <em>Management</em></span></div><div class="primary-nav"><a href="/">Overview</a><a href="/routes">Routes</a><a href="/vehicles">Vehicles</a><a href="/drivers">Drivers</a><a href="/customers">Customers</a><a href="/monitoring">Monitoring</a><a href="/traffic">Traffic</a></div><div class="user-menu"><a href="/auth/login">Login</a><a href="/auth/register">Register</a></div></div></nav><main class="fleet-dashboard"><div class="page-heading"><div><p class="eyebrow">Delivery confirmation</p><h1>Route ${safeRouteId}</h1><p class="header-copy">Record the time goods were delivered and include an electronic proof photo.</p></div><a class="button button-secondary" href="/routes">← Routes</a></div><section class="panel delivery-form-panel"><div class="panel-heading"><div><p class="eyebrow">Driver action</p><h2>Confirm delivery</h2></div></div><form method="post" action="/api/fleet/routes/${safeRouteId}/deliver" enctype="multipart/form-data" class="delivery-form"><label>Delivery timestamp<input name="actual_arrival" type="datetime-local" required></label><label>Actual trip mileage<input name="miles_travelled" type="number" min="0" step="0.1" required><small>This mileage is added to the vehicle after delivery.</small></label><label>Delivery notes<textarea name="notes"></textarea></label><label>Proof of delivery reference<input name="proof_reference"></label><label>Electronic proof photo<input name="proof_photo" type="file" accept="image/jpeg,image/png,image/webp" required><small>Upload a clear delivery photo, maximum 2 MB.</small></label><button class="button button-primary" type="submit">Mark goods delivered</button></form></section></main></body></html>`
-  return new Response(html, { headers: { 'Content-Type': 'text/html; charset=UTF-8' } })
+  if (!Number.isFinite(routeId) || routeId <= 0) return c.redirect('/routes')
+  const route = await c.env.DB.prepare(`SELECT id, route_reference, origin, destination, cargo_description, status, actual_arrival, distance_miles, driver_id, vehicle_id FROM fleet_routes WHERE id = ?`).bind(routeId).first() as any
+  if (!route) return c.redirect('/routes')
+  const driver = route.driver_id ? await c.env.DB.prepare(`SELECT full_name FROM users WHERE id = (SELECT user_id FROM drivers WHERE id = ?)`).bind(route.driver_id).first() as any : null
+  const vehicle = route.vehicle_id ? await c.env.DB.prepare(`SELECT vehicle_reference, current_temperature FROM vehicles WHERE id = ?`).bind(route.vehicle_id).first() as any : null
+  return c.render(<DeliveryPage route={{ ...route, driver_name: driver?.full_name, vehicle_reference: vehicle?.vehicle_reference, current_temperature: vehicle?.current_temperature }} />)
 })
 app.get('/traffic', (c) => c.render(<TrafficPage />))
 app.get('/profile', (c) => c.render(<ProfilePage />))
