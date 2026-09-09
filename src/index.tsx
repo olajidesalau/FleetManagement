@@ -1722,7 +1722,14 @@ app.get('/monitoring', (c) => c.render(<MonitoringPage />))
 app.get('/drivers', async (c) => {
   try {
     const drivers = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_expiry, d.status, d.phone, u.full_name, u.email, r.route_reference, r.origin, r.destination FROM drivers d LEFT JOIN users u ON u.id = d.user_id LEFT JOIN fleet_routes r ON r.driver_id = d.id AND r.status NOT IN ('delivered', 'cancelled') ORDER BY u.full_name, d.driver_reference`).all()
-    return c.render(<DriversPage drivers={drivers.results} />)
+    const authHeader = c.req.header('Authorization')
+    let currentUser: any = null
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const payload = decodeJWT(token)
+      if (payload && payload.userId) currentUser = payload
+    }
+    return c.render(<DriversPage drivers={drivers.results} currentUser={currentUser} />)
   } catch {
     return c.render(<DriversPage />)
   }
