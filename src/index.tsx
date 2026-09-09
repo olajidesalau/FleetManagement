@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { D1Database } from '@cloudflare/workers-types'
-import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
+import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, DriverFormPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
 import { renderer } from './renderer' 
 
 type Bindings = {
@@ -1726,7 +1726,12 @@ app.get('/vehicles/edit/:vehicleId', async (c) => {
 })
 app.get('/vehicles/:vehicleId', (c) => c.render(<ManagementPage title={`Vehicle ${c.req.param('vehicleId')}`} message="Review vehicle readiness, temperature, service history, and assigned route." identifier={c.req.param('vehicleId')} backHref="/vehicles" />))
 app.get('/drivers/new', (c) => c.render(<DriverFormPage />))
-app.get('/drivers/:driverId', (c) => c.render(<ManagementPage title={`Driver ${c.req.param('driverId')}`} message="Review driver availability, route assignments, and licence status." identifier={c.req.param('driverId')} backHref="/drivers" />))
+app.get('/drivers/:driverId', async (c) => {
+  const driverId = c.req.param('driverId')
+  const driver = await c.env.DB.prepare(`SELECT d.driver_reference, d.licence_number, d.licence_expiry, d.phone, d.emergency_contact_name, d.emergency_contact_phone, d.status, d.created_at, u.full_name, u.email, r.route_reference, r.origin, r.destination, r.status AS route_status, r.scheduled_departure, r.estimated_arrival, v.vehicle_reference FROM drivers d LEFT JOIN users u ON u.id = d.user_id LEFT JOIN fleet_routes r ON r.driver_id = d.id AND r.status NOT IN ('delivered', 'cancelled') LEFT JOIN vehicles v ON v.id = r.vehicle_id WHERE d.driver_reference = ? OR d.id = ? ORDER BY r.scheduled_departure DESC LIMIT 1`).bind(driverId, Number(driverId) || 0).first()
+  if (!driver) return c.redirect('/drivers')
+  return c.render(<DriverDetailPage driver={driver} />)
+})
 app.get('/drivers/:driverId/edit', (c) => c.render(<ManagementPage title={`Edit driver ${c.req.param('driverId')}`} message="Update driver contact, licence, and availability information." identifier={c.req.param('driverId')} backHref="/drivers" />))
 app.get('/customers/new', (c) => c.render(<CustomerFormPage />))
 app.get('/customers/:customerId', (c) => c.render(<ManagementPage title={`Customer ${c.req.param('customerId')}`} message="Review customer routes, services, and delivery history." identifier={c.req.param('customerId')} backHref="/customers" />))
