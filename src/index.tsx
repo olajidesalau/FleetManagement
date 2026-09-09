@@ -408,6 +408,9 @@ app.get('/api/providers/search', async (c) => {
   }
 })
 
+// Driver/provider self-profile must be declared before the dynamic user ID route.
+app.get('/providers/profile', authenticate, requireRole('provider'), (c) => c.redirect('/profile'))
+
 // Get provider profile by user ID (must be after /search route)
 app.get('/api/providers/:userId', async (c) => {
   try {
