@@ -1855,7 +1855,29 @@ app.get('/drivers/:driverId/edit', authenticate, requireAdmin(), async (c) => {
 app.get('/customers/new', authenticate, requireAdmin(), (c) => c.render(<CustomerFormPage />))
 app.get('/customers/:customerId', async (c) => {
   const customerId = c.req.param('customerId')
-  return c.html(`<main><h1>Customer ${customerId}</h1><p>Customer detail route is available.</p></main>`)
+  const prospectusCustomers: Record<string, any> = {
+    'CUS-0041': { full_name: 'Northstar Medical', email: 'operations@northstar.example', status: 'active', role: 'customer', route_count: 12 },
+    'CUS-0046': { full_name: 'Carewell Clinics', email: 'dispatch@carewell.example', status: 'active', role: 'customer', route_count: 8 },
+    'CUS-0053': { full_name: 'MedEquip UK', email: 'logistics@medequip.example', status: 'active', role: 'customer', route_count: 6 },
+    'CUS-0060': { full_name: 'Wellbeing Direct', email: 'transport@wellbeing.example', status: 'pending', role: 'customer', route_count: 3 },
+  }
+  let customer = prospectusCustomers[customerId]
+  if (!customer) {
+    customer = await c.env.DB.prepare(`SELECT id, full_name, email, phone, postcode, role, status, created_at FROM users WHERE (id = ? OR email = ?) AND role = 'customer' LIMIT 1`).bind(Number(customerId) || 0, customerId).first() as any
+  }
+  if (!customer) return c.redirect('/customers')
+  let routeRows: any[] = []
+  if (customer.id) {
+    try {
+      const result = await c.env.DB.prepare(`SELECT route_reference, origin, destination, status FROM fleet_routes WHERE customer_id = ? ORDER BY scheduled_departure DESC LIMIT 50`).bind(customer.id).all()
+      routeRows = (result.results || []) as any[]
+    } catch {}
+  }
+  const currentUser = c.get('user') as any
+  const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] || character))
+  const editLink = isAdminRole(currentUser?.role) ? `<a class="button button-primary" href="/customers/${encodeURIComponent(customerId)}/edit">Edit customer</a>` : ''
+  const routesMarkup = routeRows.length ? routeRows.map(route => `<li><strong>${escapeHtml(route.route_reference)}</strong> ${escapeHtml(route.origin)} to ${escapeHtml(route.destination)} <span>${escapeHtml(route.status)}</span></li>`).join('') : `<li>No linked routes yet. This customer has ${escapeHtml(customer.route_count || 0)} prospectus routes recorded.</li>`
+  return c.html(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeHtml(customer.full_name)} - Snow Fleet Management</title><link rel="stylesheet" href="/static/style.css"></head><body><nav class="topbar"><div class="nav-shell"><div class="brand-lockup"><span class="brand-mark">S</span><span>Snow Fleet <em>Management</em></span></div><div class="primary-nav"><a href="/">Overview</a><a href="/routes">Routes</a><a href="/vehicles">Vehicles</a><a href="/temperature">Temperature</a><a href="/drivers">Drivers</a><a class="active" href="/customers">Customers</a><a href="/alerts">Alerts</a><a href="/monitoring">Monitoring</a><a href="/traffic">Traffic</a><a href="/messages">Messages</a></div><div class="user-menu"><a href="/profile">${escapeHtml(currentUser?.email || 'Account')}</a></div></div></nav><main class="fleet-dashboard"><div class="page-heading"><div><p class="eyebrow">Fleet management / customer detail</p><h1>${escapeHtml(customer.full_name)}</h1><p class="header-copy">Customer contact information, delivery requirements, and route history.</p></div><div class="header-actions"><a class="button button-secondary" href="/customers">All customers</a>${editLink}</div></div><section class="metric-grid"><article class="metric-card metric-card-accent"><span class="metric-label">Status</span><strong>${escapeHtml(customer.status || 'active')}</strong><span class="metric-note">Customer account</span></article><article class="metric-card"><span class="metric-label">Email</span><strong>${escapeHtml(customer.email || 'N/A')}</strong><span class="metric-note">Primary contact</span></article><article class="metric-card"><span class="metric-label">Phone</span><strong>${escapeHtml(customer.phone || 'N/A')}</strong><span class="metric-note">Contact number</span></article><article class="metric-card"><span class="metric-label">Routes</span><strong>${routeRows.length || customer.route_count || 0}</strong><span class="metric-note">Linked or prospectus routes</span></article></section><section class="panel detail-panel"><div class="panel-heading"><div><p class="eyebrow">Customer record</p><h2>Contact details and route history</h2></div></div><div class="detail-facts"><div><span>Organisation</span><strong>${escapeHtml(customer.full_name)}</strong></div><div><span>Postcode</span><strong>${escapeHtml(customer.postcode || 'Not recorded')}</strong></div><div><span>Role</span><strong>${escapeHtml(customer.role || 'customer')}</strong></div><div><span>Routes</span><strong><ul>${routesMarkup}</ul></strong></div></div></section></main><script src="/static/app.js"></script></body></html>`)
   /*
   const prospectusCustomers: Record<string, any> = {
     'CUS-0041': { full_name: 'Northstar Medical', email: 'operations@northstar.example', status: 'active', role: 'customer', route_count: 12 },
