@@ -1770,6 +1770,7 @@ app.get('/', async (c) => {
     const session = decodeJWT(sessionToken)
     if (session?.userId) currentUser = await c.env.DB.prepare('SELECT id, full_name, email, role FROM users WHERE id = ?').bind(session.userId).first()
   }
+  if (currentUser) c.set('user', { ...currentUser, userId: currentUser.id })
   return c.render(<HomePage currentUser={currentUser} />)
 })
 
