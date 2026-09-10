@@ -1,5 +1,6 @@
 // Minimal client-side helpers (moved out oflined scripts)
 (function () {
+  axios.defaults.withCredentials = true;
   const operationalTimeZone = 'Europe/London';
   const formatOperationalTime = value => new Intl.DateTimeFormat('en-GB', {
     timeZone: operationalTimeZone,
@@ -124,11 +125,12 @@
     }
 
     const role = String(user.role || 'customer').trim();
-    const isAdminRole = ['admin', 'fleet_manager', 'Fleet Manager'].includes(role);
+    const normalizedRole = role.toLowerCase().replace(/\s+/g, '_');
+    const isAdminRole = ['admin', 'fleet_manager'].includes(normalizedRole);
     document.querySelectorAll('[data-admin-only]').forEach(element => {
       element.hidden = !isAdminRole;
     });
-    const roleLinks = linksByRole[role] || [];
+    const roleLinks = linksByRole[normalizedRole] || linksByRole[role] || [];
     roleLinks.forEach(l => {
       const a = document.createElement('a');
       a.href = l.href;
@@ -145,9 +147,9 @@
 
   // Fetch user via API
   async function fetchCurrentUser(token) {
-    if (!token) return null;
     try {
-      const resp = await axios.get('/api/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+      const config = token ? { headers: { Authorization: 'Bearer ' + token } } : {};
+      const resp = await axios.get('/api/auth/me', config);
       return resp.data.user;
     } catch (err) {
       clearToken();
@@ -200,7 +202,7 @@
         // Send each registered profile to its operational starting page.
         if (user && (user.role === 'provider' || user.role === 'driver')) {
           window.location.href = '/providers/profile';
-        } else if (user && ['admin', 'fleet_manager', 'Fleet Manager'].includes(user.role)) {
+        } else if (user && ['admin', 'fleet_manager'].includes(String(user.role || '').trim().toLowerCase().replace(/\s+/g, '_'))) {
           window.location.href = '/admin/dashboard';
         } else {
           window.location.href = '/';
@@ -287,13 +289,9 @@
     const userSection = document.querySelector('.user-menu');
     if (userSection) {
       // If token present, fetch user and update nav accordingly
-      if (token) {
-        const user = await fetchCurrentUser(token);
-        if (user) {
-          renderLoggedInUser(user);
-        } else {
-          renderLoggedOutUser(userSection);
-        }
+      const user = await fetchCurrentUser(token);
+      if (user) {
+        renderLoggedInUser(user);
       } else {
         renderLoggedOutUser(userSection);
       }

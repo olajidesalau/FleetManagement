@@ -152,7 +152,8 @@ function requireRole(...roles: string[]) {
 }
 
 function isAdminRole(role: unknown): boolean {
-  return ['admin', 'fleet_manager', 'Fleet Manager'].includes(String(role || '').trim())
+  const normalizedRole = String(role || '').trim().toLowerCase().replace(/\s+/g, '_')
+  return ['admin', 'fleet_manager'].includes(normalizedRole)
 }
 
 function requireAdmin() {
@@ -180,8 +181,8 @@ app.post('/api/auth/register', async (c) => {
     }
     
     // Driver accounts use the existing provider-compatible user role plus a fleet driver record.
-    if (!['customer', 'provider', 'driver', 'admin'].includes(role)) {
-      return c.json({ error: 'Invalid role. Choose customer, driver, or admin' }, 400)
+    if (!['customer', 'provider', 'driver'].includes(role)) {
+      return c.json({ error: 'Invalid role. Choose customer, provider, or driver' }, 400)
     }
     if (role === 'driver' && (!licence_number || !licence_expiry)) {
       return c.json({ error: 'Driver licence number and expiry are required' }, 400)
@@ -232,6 +233,7 @@ app.post('/api/auth/register', async (c) => {
     
     // Generate JWT token
     const token = encodeJWT({ userId, email, role }, 'your-secret-key')
+    c.header('Set-Cookie', `snow_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`)
     
     return c.json({ 
       success: true, 
