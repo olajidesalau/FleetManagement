@@ -2051,9 +2051,11 @@ app.get('/providers/:userId', async (c) => {
 
 // Messages (server-rendered pages)
 app.get('/messages', authenticate, async (c) => {
+  const user = c.get('user') as any
+  let conversations: any[] = []
+  let contacts: any[] = []
+  let currentRole = ''
   try {
-    const user = c.get('user') as any
-
     const result = await (c.env.DB as D1Database).prepare(`
       SELECT DISTINCT
         CASE
@@ -2068,7 +2070,6 @@ app.get('/messages', authenticate, async (c) => {
       ORDER BY last_message_at DESC
     `).bind(user.userId, user.userId, user.userId).all()
 
-    const conversations: any[] = []
     for (const conv of result.results) {
       const otherUser = await (c.env.DB as D1Database).prepare(
         'SELECT id, full_name, email FROM users WHERE id = ?'
@@ -2088,7 +2089,7 @@ app.get('/messages', authenticate, async (c) => {
       })
     }
 
-    const contacts = await c.env.DB.prepare(`
+    const contactRows = await c.env.DB.prepare(`
       SELECT u.id, u.full_name, u.email,
         CASE WHEN u.role IN ('admin', 'fleet_manager', 'Fleet Manager') THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role IN ('customer', 'provider') THEN u.role ELSE u.role END AS contact_role,
         d.driver_reference
@@ -2097,11 +2098,12 @@ app.get('/messages', authenticate, async (c) => {
       ORDER BY contact_role, u.full_name
     `).bind(user.userId).all()
     const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
-    const visibleContacts = (contacts.results || []).filter((contact: any) => isAdminRole(current?.role) ? ['driver', 'customer', 'provider'].includes(contact.contact_role) : ['admin', 'driver', 'customer', 'provider'].includes(contact.contact_role))
-    return c.render(<MessagesPage conversations={conversations} contacts={visibleContacts} currentRole={current?.role || ''} />)
+    currentRole = String(current?.role || '')
+    contacts = (contactRows.results || []).filter((contact: any) => isAdminRole(currentRole) ? ['driver', 'customer', 'provider'].includes(contact.contact_role) : ['admin', 'driver', 'customer', 'provider'].includes(contact.contact_role))
   } catch (error: any) {
-    return c.render(<MessagesPage conversations={[]} />)
+    console.error('Messages page data load failed:', error?.message || error)
   }
+  return c.render(<MessagesPage conversations={conversations} contacts={contacts} currentRole={currentRole} />)
 })
 
 app.get('/messages/new', authenticate, async (c) => {
