@@ -1866,15 +1866,15 @@ app.get('/alerts/vehicle', (c) => c.render(<VehiclesPage />))
 app.get('/bookings/:bookingId', (c) => c.render(<BookingsPage bookings={[]} />))
 app.get('/notifications', (c) => c.render(<NotificationsPage notifications={[]} />))
 app.get('/admin/dashboard', authenticate, requireAdmin(), async (c) => {
-  const [users, providers, pending, bookings, completed, revenue] = await Promise.all([
-    c.env.DB.prepare('SELECT COUNT(*) AS count FROM users').first(),
-    c.env.DB.prepare("SELECT COUNT(*) AS count FROM provider_profiles WHERE approval_status = 'approved'").first(),
-    c.env.DB.prepare("SELECT COUNT(*) AS count FROM provider_profiles WHERE approval_status = 'pending'").first(),
-    c.env.DB.prepare('SELECT COUNT(*) AS count FROM bookings').first(),
-    c.env.DB.prepare("SELECT COUNT(*) AS count FROM bookings WHERE status = 'completed'").first(),
-    c.env.DB.prepare("SELECT COALESCE(SUM(platform_fee), 0) AS total FROM bookings WHERE status = 'completed'").first()
+  const [routes, vehicles, drivers, alerts, customers, completed] = await Promise.all([
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM fleet_routes WHERE status NOT IN ('delivered', 'cancelled')").first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM vehicles WHERE status != 'offline'").first(),
+    c.env.DB.prepare('SELECT COUNT(*) AS count FROM drivers').first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM alerts WHERE status IN ('open', 'acknowledged')").first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM users WHERE role = 'customer' AND status = 'active'").first(),
+    c.env.DB.prepare("SELECT COUNT(*) AS count FROM fleet_routes WHERE status = 'delivered'").first()
   ])
-  return c.render(<AdminDashboardPage stats={{ total_users: (users as any)?.count, approved_providers: (providers as any)?.count, pending_approvals: (pending as any)?.count, total_bookings: (bookings as any)?.count, completed_bookings: (completed as any)?.count, platform_revenue: (revenue as any)?.total }} />)
+  return c.render(<AdminDashboardPage stats={{ active_routes: (routes as any)?.count, vehicles_online: (vehicles as any)?.count, drivers: (drivers as any)?.count, open_alerts: (alerts as any)?.count, customers: (customers as any)?.count, completed_deliveries: (completed as any)?.count }} />)
 })
 app.get('/admin/users', authenticate, requireAdmin(), async (c) => {
   const search = c.req.query('search') || ''

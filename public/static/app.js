@@ -96,52 +96,11 @@
     userSection.appendChild(emailSpan);
     userSection.appendChild(logoutLink);
 
-    // Add role-specific quick links (client-side enhancement)
-    // Remove any existing dynamic role links to avoid duplicates
-    const existingDynamic = mainLinksContainer.querySelectorAll('[data-dynamic-role]');
-    existingDynamic.forEach(el => el.remove());
-
-    const linksByRole = {
-      customer: [
-        { href: '/bookings/customer', label: 'My Bookings' },
-        { href: '/messages', label: 'Messages' }
-      ],
-      provider: [
-        { href: '/providers/profile', label: 'My Profile' },
-        { href: '/messages', label: 'Messages' }
-      ],
-      admin: [
-        { href: '/admin/dashboard', label: 'Admin' },
-        { href: '/messages', label: 'Messages' }
-      ],
-      fleet_manager: [
-        { href: '/admin/dashboard', label: 'Admin' },
-        { href: '/messages', label: 'Messages' }
-      ],
-      'Fleet Manager': [
-        { href: '/admin/dashboard', label: 'Admin' },
-        { href: '/messages', label: 'Messages' }
-      ]
-    }
-
     const role = String(user.role || 'customer').trim();
     const normalizedRole = role.toLowerCase().replace(/\s+/g, '_');
     const isAdminRole = ['admin', 'fleet_manager'].includes(normalizedRole);
     document.querySelectorAll('[data-admin-only]').forEach(element => {
       element.hidden = !isAdminRole;
-    });
-    const roleLinks = linksByRole[normalizedRole] || linksByRole[role] || [];
-    roleLinks.forEach(l => {
-      const a = document.createElement('a');
-      a.href = l.href;
-      a.textContent = l.label;
-      a.style.color = 'white';
-      a.style.textDecoration = 'none';
-      a.setAttribute('data-dynamic-role', '1');
-      a.style.display = 'flex';
-      a.style.alignItems = 'center';
-      a.style.gap = '0.5rem';
-      mainLinksContainer.appendChild(a);
     });
   }
 
