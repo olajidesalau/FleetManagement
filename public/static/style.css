@@ -302,8 +302,27 @@ h2 { margin: 0; font-size: 21px; }
 .profile-form input { min-height: 42px; padding: 0 11px; border: 1px solid var(--line); font-family: inherit; }
 .profile-form button { border: 0; cursor: pointer; }
 .profile-form-status { grid-column: 1 / -1; margin: 0; color: #2d9471; font-size: 11px; }
-.conversation-page > div { max-width: 900px; margin: 0 auto; }
-.conversation-card { padding: 16px; }
+.conversation-page > div { width: min(100%, 1180px); max-width: none; margin: 0 auto; }
+.conversation-card { display: grid; grid-template-rows: minmax(360px, 1fr) auto; min-height: 620px; padding: 0; overflow: hidden; }
+.conversation-messages { min-height: 360px; max-height: 560px; overflow-y: auto; padding: 28px 32px; background: #fbfcfc; }
+.message-bubble { width: fit-content; max-width: min(78%, 720px); margin: 0 0 18px; padding: 14px 17px; border: 1px solid var(--line); background: white; box-shadow: 0 5px 15px rgba(28, 52, 57, 0.04); }
+.message-bubble strong { display: block; margin-bottom: 7px; color: var(--ink); font-size: 12px; }
+.message-bubble p { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message-bubble small { display: block; margin-top: 9px; color: var(--muted); font-size: 10px; }
+.conversation-card > form[data-conversation-form] { display: grid !important; grid-template-columns: minmax(0, 1fr) auto; gap: 12px !important; padding: 20px 24px; border-top: 1px solid var(--line); background: white; }
+.conversation-card > form[data-conversation-form] input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid #cbd7d8; color: var(--ink); font: inherit; }
+.conversation-card > form[data-conversation-form] input:focus { outline: 2px solid rgba(0, 127, 130, .18); border-color: var(--teal); }
+.conversation-card > form[data-conversation-form] button { min-width: 100px; min-height: 48px; padding: 0 22px; border: 0; background: var(--teal); color: white; font: inherit; font-weight: 700; cursor: pointer; }
+.conversation-card > form[data-conversation-form] button:hover { background: #00676a; }
+@media (max-width: 700px) {
+	.conversation-page > div { width: 100%; }
+	.conversation-page .page-heading { gap: 18px; }
+	.conversation-card { min-height: 520px; }
+	.conversation-messages { min-height: 300px; padding: 20px 16px; }
+	.message-bubble { max-width: 92%; }
+	.conversation-card > form[data-conversation-form] { grid-template-columns: 1fr; padding: 16px; }
+	.conversation-card > form[data-conversation-form] button { width: 100%; }
+}
 .messages-layout { display: grid; grid-template-columns: 1.35fr 1fr; gap: 19px; }
 .conversation-list-panel { overflow: hidden; }
 .conversation-list { border-top: 1px solid #edf1f1; }
