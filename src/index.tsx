@@ -166,6 +166,9 @@ function requireAdmin() {
   return async (c: any, next: any) => {
     const user = c.get('user') as any
     if (!user || !isAdminRole(user.role)) {
+      if (c.req.header('Accept')?.includes('text/html')) {
+        return c.html(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Access denied - Snow Fleet Management</title><link rel="stylesheet" href="/static/style.css"></head><body><nav class="topbar"><div class="nav-shell"><div class="brand-lockup"><span class="brand-mark">S</span><span>Snow Fleet <em>Management</em></span></div><div class="primary-nav"><a href="/">Overview</a><a href="/drivers">Drivers</a><a href="/customers">Customers</a><a href="/messages">Messages</a></div><div class="user-menu"><a href="/profile">Account</a></div></div></nav><main class="fleet-dashboard"><section class="panel access-denied-panel"><p class="eyebrow">Fleet permissions</p><h1>Access denied</h1><p class="access-denied-message">Insufficient permissions. Only Admin and Fleet Manager accounts can edit driver information.</p><a class="button button-secondary" href="/drivers">Back to drivers</a></section></main></body></html>`, 403)
+      }
       return c.json({ error: 'Forbidden - insufficient permissions' }, 403)
     }
     await next()
