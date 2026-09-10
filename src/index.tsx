@@ -1190,17 +1190,17 @@ app.get('/api/messages/contacts', authenticate, async (c) => {
     const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
     const rows = await c.env.DB.prepare(`
       SELECT u.id, u.full_name, u.email,
-        CASE WHEN u.role IN ('admin', 'fleet_manager', 'Fleet Manager') THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role = 'customer' THEN 'customer' ELSE u.role END AS contact_role,
+        CASE WHEN u.role IN ('admin', 'fleet_manager', 'Fleet Manager') THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role IN ('customer', 'provider') THEN u.role ELSE u.role END AS contact_role,
         d.driver_reference
       FROM users u
       LEFT JOIN drivers d ON d.user_id = u.id
       WHERE u.id != ? AND u.status = 'active'
-        AND (u.role IN ('admin', 'fleet_manager', 'Fleet Manager', 'customer') OR d.id IS NOT NULL)
+        AND (u.role IN ('admin', 'fleet_manager', 'Fleet Manager', 'customer', 'provider') OR d.id IS NOT NULL)
       ORDER BY contact_role, u.full_name
     `).bind(user.userId).all()
     const contacts = (rows.results || []).filter((contact: any) => {
       if (isAdminRole(current?.role)) return ['driver', 'customer'].includes(contact.contact_role)
-      return ['admin', 'driver', 'customer'].includes(contact.contact_role)
+      return ['admin', 'driver', 'customer', 'provider'].includes(contact.contact_role)
     })
     return c.json({ contacts })
   } catch (error: any) {
@@ -2090,14 +2090,14 @@ app.get('/messages', authenticate, async (c) => {
 
     const contacts = await c.env.DB.prepare(`
       SELECT u.id, u.full_name, u.email,
-        CASE WHEN u.role IN ('admin', 'fleet_manager', 'Fleet Manager') THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role = 'customer' THEN 'customer' ELSE u.role END AS contact_role,
+        CASE WHEN u.role IN ('admin', 'fleet_manager', 'Fleet Manager') THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role IN ('customer', 'provider') THEN u.role ELSE u.role END AS contact_role,
         d.driver_reference
       FROM users u LEFT JOIN drivers d ON d.user_id = u.id
-      WHERE u.id != ? AND u.status = 'active' AND (u.role IN ('admin', 'fleet_manager', 'Fleet Manager', 'customer') OR d.id IS NOT NULL)
+      WHERE u.id != ? AND u.status = 'active' AND (u.role IN ('admin', 'fleet_manager', 'Fleet Manager', 'customer', 'provider') OR d.id IS NOT NULL)
       ORDER BY contact_role, u.full_name
     `).bind(user.userId).all()
     const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
-    const visibleContacts = (contacts.results || []).filter((contact: any) => isAdminRole(current?.role) ? ['driver', 'customer'].includes(contact.contact_role) : ['admin', 'driver', 'customer'].includes(contact.contact_role))
+    const visibleContacts = (contacts.results || []).filter((contact: any) => isAdminRole(current?.role) ? ['driver', 'customer', 'provider'].includes(contact.contact_role) : ['admin', 'driver', 'customer', 'provider'].includes(contact.contact_role))
     return c.render(<MessagesPage conversations={conversations} contacts={visibleContacts} currentRole={current?.role || ''} />)
   } catch (error: any) {
     return c.render(<MessagesPage conversations={[]} />)

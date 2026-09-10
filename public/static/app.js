@@ -108,13 +108,16 @@
         { href: '/services/manage', label: 'My Services' }
       ],
       admin: [
-        { href: '/admin/dashboard', label: 'Admin' }
+        { href: '/admin/dashboard', label: 'Admin' },
+        { href: '/messages', label: 'Messages' }
       ],
       fleet_manager: [
-        { href: '/admin/dashboard', label: 'Admin' }
+        { href: '/admin/dashboard', label: 'Admin' },
+        { href: '/messages', label: 'Messages' }
       ],
       'Fleet Manager': [
-        { href: '/admin/dashboard', label: 'Admin' }
+        { href: '/admin/dashboard', label: 'Admin' },
+        { href: '/messages', label: 'Messages' }
       ]
     }
 

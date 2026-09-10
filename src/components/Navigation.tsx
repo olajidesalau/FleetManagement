@@ -16,6 +16,7 @@ export const Navigation = ({ currentUser }: { currentUser?: any } = {}) => {
           <a href="/alerts">Alerts</a>
           <a href="/monitoring">Monitoring</a>
           <a href="/traffic">Traffic</a>
+          <a href="/messages">Messages</a>
         </div>
         <div class="user-menu">
           <a class="notification-button" href="/alerts" aria-label="View alerts">●<span>4</span></a>
