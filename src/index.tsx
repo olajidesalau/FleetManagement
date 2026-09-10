@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { D1Database } from '@cloudflare/workers-types'
-import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, VehicleEditPage, VehicleDetailPage, DriverFormPage, DriverEditPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
+import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, CustomerDetailPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, VehicleEditPage, VehicleDetailPage, DriverFormPage, DriverEditPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
 import { renderer } from './renderer' 
 
 type Bindings = {
@@ -1853,7 +1853,14 @@ app.get('/drivers/:driverId/edit', authenticate, requireAdmin(), async (c) => {
   return c.render(<DriverEditPage driver={driver} />)
 })
 app.get('/customers/new', authenticate, requireAdmin(), (c) => c.render(<CustomerFormPage />))
-app.get('/customers/:customerId', (c) => c.render(<ManagementPage title={`Customer ${c.req.param('customerId')}`} message="Review customer routes, services, and delivery history." identifier={c.req.param('customerId')} backHref="/customers" />))
+app.get('/customers/:customerId', async (c) => {
+  const customerId = c.req.param('customerId')
+  const customer = await c.env.DB.prepare(`SELECT id, full_name, email, phone, postcode, role, status, created_at FROM users WHERE (id = ? OR email = ?) AND role = 'customer' LIMIT 1`).bind(Number(customerId) || 0, customerId).first() as any
+  if (!customer) return c.redirect('/customers')
+  const routes = await c.env.DB.prepare(`SELECT route_reference, origin, destination, status, scheduled_departure, estimated_arrival FROM fleet_routes WHERE customer_id = ? ORDER BY scheduled_departure DESC LIMIT 50`).bind(customer.id).all()
+  const currentUser = c.get('user') as any
+  return c.render(<CustomerDetailPage customer={customer} routes={routes.results || []} isAdmin={isAdminRole(currentUser?.role)} />)
+})
 app.get('/customers/:customerId/edit', authenticate, requireAdmin(), (c) => c.render(<ManagementPage title={`Edit customer ${c.req.param('customerId')}`} message="Update customer contacts and cold-chain delivery requirements." identifier={c.req.param('customerId')} backHref="/customers" />))
 app.get('/alerts/traffic', (c) => c.render(<TrafficPage />))
 app.get('/alerts/vehicle', (c) => c.render(<VehiclesPage />))

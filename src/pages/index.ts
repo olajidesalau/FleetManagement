@@ -17,3 +17,4 @@ export { RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage,
 export { ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, VehicleEditPage, VehicleDetailPage, DriverFormPage, DriverEditPage, DriverDetailPage, CustomerFormPage } from './ManagementPages'
 export { ProfilePage } from './ProfilePage'
 export { DeliveryPage } from './DeliveryPage'
+export { CustomerDetailPage } from './CustomerDetailPage'
