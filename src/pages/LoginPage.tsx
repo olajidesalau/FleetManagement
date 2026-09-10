@@ -41,11 +41,6 @@ export const LoginPage = () => {
           <p>Don't have an account? <a href="/auth/register">Register here</a></p>
         </div>
 
-        <div class="login-demo">
-          <p><strong>Demo access</strong></p>
-          <p>Customer: john.smith@email.uk / password</p>
-          <p>Fleet manager: admin@snowfleetmanagement.uk / admin_password</p>
-        </div>
       </div>
     </div>
   )
