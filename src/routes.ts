@@ -73,7 +73,6 @@ export const getNavLinks = (role?: string) => {
   const providerLinks = [
     { path: '/', label: 'Home', icon: '🏠' },
     { path: '/providers/profile', label: 'My Profile', icon: '👤' },
-    { path: '/services/manage', label: 'My Services', icon: '⚙️' },
     { path: '/bookings/provider', label: 'My Bookings', icon: '📅' },
     { path: '/messages', label: 'Messages', icon: '💬' },
     { path: '/notifications', label: 'Notifications', icon: '🔔' },

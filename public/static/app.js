@@ -108,7 +108,7 @@
       ],
       provider: [
         { href: '/providers/profile', label: 'My Profile' },
-        { href: '/services/manage', label: 'My Services' }
+        { href: '/messages', label: 'Messages' }
       ],
       admin: [
         { href: '/admin/dashboard', label: 'Admin' },
