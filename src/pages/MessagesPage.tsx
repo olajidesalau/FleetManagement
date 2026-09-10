@@ -1,12 +1,71 @@
-export const MessagesPage = ({ conversations = [], contacts = [], currentRole = '' }: { conversations?: any[]; contacts?: any[]; currentRole?: string } = {}) => {
-  const unreadCount = conversations.filter((conversation: any) => Number(conversation.unread_count || 0) > 0).length
+export const MessagesPage = ({ conversations = [], contacts = [] }: { conversations?: any[]; contacts?: any[] } = {}) => {
+  const roleLabels: Record<string, string> = {
+    admin: 'Fleet Admins',
+    driver: 'Drivers',
+    customer: 'Customers',
+    provider: 'Providers',
+  }
 
   return (
     <div class="fleet-dashboard messages-page">
-      <div class="page-heading"><div><p class="eyebrow">Communication hub</p><h1>Messages</h1><p class="header-copy">Coordinate deliveries and keep conversations with customers, drivers, and fleet teams in one place.</p></div><div class="header-actions"><span class="sync-status"><span class="status-dot status-dot-live"></span>{unreadCount} unread</span><a class="button button-primary" href="/providers/search">Find a profile to message</a></div></div>
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">Communication hub</p>
+          <h1>Messages</h1>
+          <p class="header-copy">Coordinate routes, deliveries, vehicles, and customer requirements.</p>
+        </div>
+        <div class="header-actions">
+          <span class="sync-status"><span class="status-dot status-dot-live"></span>{conversations.length} conversations</span>
+        </div>
+      </div>
       <div class="messages-layout">
-        <section class="panel conversation-list-panel"><div class="panel-heading"><div><p class="eyebrow">Inbox</p><h2>Recent conversations</h2></div><span class="count-badge">{conversations.length}</span></div>{conversations.length === 0 ? <div class="messages-empty"><strong>Your inbox is clear.</strong><span>Open a customer, driver, or provider profile to start a conversation.</span><a class="text-link" href="/providers/search">Browse profiles <span>→</span></a></div> : <div class="conversation-list">{conversations.map((conversation: any) => <a class={`conversation-list-item ${Number(conversation.unread_count || 0) > 0 ? 'conversation-unread' : ''}`} href={`/messages/conversation/${conversation.id}`}><span class="conversation-avatar">{String(conversation.other_user_name || 'U').split(/\s+/).map((part: string) => part[0]).join('').slice(0, 2).toUpperCase()}</span><span class="conversation-summary"><strong>{conversation.other_user_name}</strong><small>{conversation.other_user?.role || 'Fleet contact'}</small><span>{conversation.last_message || 'No messages yet'}</span></span><span class="conversation-meta"><small>{conversation.last_message_date || ''}</small>{Number(conversation.unread_count || 0) > 0 && <b>{conversation.unread_count}</b>}</span></a>)}</div>}</section>
-        <section class="panel message-intro-panel"><div class="message-intro-icon">✦</div><p class="eyebrow">Role-based messaging</p><h2>Keep the fleet moving together</h2><p>Send clear updates about route allocations, customer requirements, vehicle readiness, and delivery exceptions.</p><div class="message-contact-groups">{['admin', 'driver', 'customer', 'provider'].map(role => { const roleContacts = contacts.filter((contact: any) => contact.contact_role === role); return roleContacts.length ? <div class="message-contact-group"><strong>{role === 'admin' ? 'Fleet Admins' : role === 'driver' ? 'Drivers' : role === 'provider' ? 'Providers' : 'Customers'}</strong>{roleContacts.map((contact: any) => <a href={`/messages/new?to=${contact.id}`}><span class="contact-avatar">{String(contact.full_name || 'U').split(/\s+/).map((part: string) => part[0]).join('').slice(0, 2).toUpperCase()}</span><span><b>{contact.full_name}</b><small>{contact.driver_reference || contact.email}</small></span><span>Message →</span></a>)}</div> : null })}</div>{!contacts.length && <a class="button button-secondary" href="/providers/search">Browse profiles</a>}</section>
+        <section class="panel conversation-list-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">Inbox</p><h2>Recent conversations</h2></div>
+            <span class="count-badge">{conversations.length}</span>
+          </div>
+          {conversations.length === 0 ? (
+            <div class="messages-empty">
+              <strong>Your inbox is clear.</strong>
+              <span>Choose a contact to start a conversation.</span>
+            </div>
+          ) : (
+            <div class="conversation-list">
+              {conversations.map((conversation: any) => (
+                <a class="conversation-list-item" href={`/messages/conversation/${conversation.id}`}>
+                  <span class="conversation-avatar">{String(conversation.other_user_name || 'U').slice(0, 1).toUpperCase()}</span>
+                  <span class="conversation-summary">
+                    <strong>{conversation.other_user_name || 'Fleet contact'}</strong>
+                    <span>{conversation.last_message || 'No messages yet'}</span>
+                  </span>
+                  <span class="conversation-meta"><small>{conversation.last_message_date || ''}</small></span>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+        <section class="panel message-intro-panel">
+          <p class="eyebrow">Available contacts</p>
+          <h2>Start a conversation</h2>
+          <div class="message-contact-groups">
+            {Object.keys(roleLabels).map((role) => {
+              const roleContacts = contacts.filter((contact: any) => contact.contact_role === role)
+              if (!roleContacts.length) return null
+              return (
+                <div class="message-contact-group">
+                  <strong>{roleLabels[role]}</strong>
+                  {roleContacts.map((contact: any) => (
+                    <a href={`/messages/new?to=${contact.id}`}>
+                      <span class="contact-avatar">{String(contact.full_name || 'U').slice(0, 1).toUpperCase()}</span>
+                      <span><b>{contact.full_name || contact.email}</b><small>{contact.driver_reference || contact.email}</small></span>
+                      <span>Message</span>
+                    </a>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        </section>
       </div>
     </div>
   )
