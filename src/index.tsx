@@ -180,6 +180,18 @@ function requireAdmin() {
   }
 }
 
+function requireDriverOrAdmin() {
+  return async (c: any, next: any) => {
+    const user = c.get('user') as any
+    if (isAdminRole(user?.role)) return next()
+    if (user?.role === 'provider') {
+      const driver = await c.env.DB.prepare('SELECT id FROM drivers WHERE user_id = ?').bind(user.userId).first()
+      if (driver) return next()
+    }
+    return c.json({ error: 'Forbidden - driver or fleet administrator permissions required' }, 403)
+  }
+}
+
 // ============================================
 // AUTHENTICATION ROUTES
 // ============================================
@@ -1493,7 +1505,7 @@ app.get('/api/admin/stats', authenticate, requireAdmin(), async (c) => {
 })
 
 // Scan connected customer and market sources for upcoming route opportunities.
-app.post('/api/fleet/routes/scan', async (c) => {
+app.post('/api/fleet/routes/scan', authenticate, requireAdmin(), async (c) => {
   let request: { source?: string; window?: string } = {}
   try {
     request = await c.req.json()
@@ -1526,7 +1538,7 @@ app.post('/api/fleet/routes/scan', async (c) => {
 })
 
 // Evaluate a route against configured Waze and Google traffic adapters.
-app.post('/api/fleet/traffic/scan', async (c) => {
+app.post('/api/fleet/traffic/scan', authenticate, requireAdmin(), async (c) => {
   const body = await c.req.json<{ route?: string }>().catch(() => ({}))
   const route = body.route || 'SN-204'
   const routeDetails: Record<string, { origin: string; destination: string; baseline_minutes: number }> = {
@@ -1577,7 +1589,7 @@ app.post('/api/fleet/traffic/scan', async (c) => {
   })
 })
 
-app.get('/api/fleet/temperature', async (c) => {
+app.get('/api/fleet/temperature', authenticate, async (c) => {
   try {
     const result = await c.env.DB.prepare(`SELECT v.vehicle_reference, v.current_temperature, v.target_temperature_min, v.target_temperature_max, v.last_seen_at, d.driver_reference, u.full_name AS driver_name FROM vehicles v LEFT JOIN drivers d ON d.id = (SELECT driver_id FROM fleet_routes WHERE vehicle_id = v.id AND status NOT IN ('delivered', 'cancelled') ORDER BY scheduled_departure DESC LIMIT 1) LEFT JOIN users u ON u.id = d.user_id WHERE v.temperature_controlled = 1 ORDER BY v.vehicle_reference`).all()
     if (result.results.length) return c.json({ readings: result.results, source: 'database' })
@@ -1590,7 +1602,7 @@ app.get('/api/fleet/temperature', async (c) => {
   ] })
 })
 
-app.get('/api/fleet/monitoring/export', async (c) => {
+app.get('/api/fleet/monitoring/export', authenticate, requireAdmin(), async (c) => {
   const format = c.req.query('format') || 'csv'
   const range = Number(c.req.query('range') || 7)
   const reportType = ['daily', 'drivers', 'routes'].includes(c.req.query('report')) ? c.req.query('report') as 'daily' | 'drivers' | 'routes' : 'daily'
@@ -1718,7 +1730,7 @@ app.post('/api/fleet/routes', authenticate, requireAdmin(), async (c) => {
   } catch (error: any) { return c.text(`Route allocation failed: ${error.message}`, 400) }
 })
 
-app.post('/api/fleet/routes/:routeId/deliver', async (c) => {
+app.post('/api/fleet/routes/:routeId/deliver', authenticate, requireDriverOrAdmin(), async (c) => {
   const routeId = Number(c.req.param('routeId'))
   let form: Record<string, any>
   try {
