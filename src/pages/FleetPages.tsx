@@ -100,6 +100,11 @@ const customers = [
   { reference: 'PRO-0116', name: 'Health Procurement Portal', contact: 'Supplier registration portal', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
   { reference: 'PRO-0117', name: 'NHS England Supplier Team', contact: 'england.supplier@nhs.net', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
   { reference: 'PRO-0118', name: 'NHS Supply Chain Food', contact: 'Food category enquiry form', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
+  { reference: 'PRO-0119', name: 'Country Valley Foods', contact: 'info@countryvalley.co.uk / 01642 562360', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
+  { reference: 'PRO-0120', name: 'Lowrie Foods', contact: 'orders@lowriefoods.co.uk / 0191 265 9161', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
+  { reference: 'PRO-0121', name: 'Bidfood Newcastle', contact: '0370 3663 450', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
+  { reference: 'PRO-0122', name: 'Reynolds Food Group', contact: 'Contact via website', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
+  { reference: 'PRO-0123', name: 'JR Holland', contact: 'Contact via website', routes: 'â€”', lastRoute: 'Prospect', status: 'Prospect' },
 ]
 
 export const CustomersPage = ({ currentUser }: { currentUser?: any } = {}) => {

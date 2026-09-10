@@ -1878,6 +1878,11 @@ app.get('/customers/:customerId', async (c) => {
     'PRO-0116': { full_name: 'Health Procurement Portal', email: 'suppliers@supplying2nhs.org', status: 'prospect', role: 'customer' },
     'PRO-0117': { full_name: 'NHS England Supplier Team', email: 'england.supplier@nhs.net', status: 'prospect', role: 'customer' },
     'PRO-0118': { full_name: 'NHS Supply Chain Food', email: 'food.enquiries@supplychain.nhs.uk', status: 'prospect', role: 'customer' },
+    'PRO-0119': { full_name: 'Country Valley Foods', email: 'info@countryvalley.co.uk', phone: '01642 562360', status: 'prospect', role: 'customer' },
+    'PRO-0120': { full_name: 'Lowrie Foods', email: 'orders@lowriefoods.co.uk', phone: '0191 265 9161', status: 'prospect', role: 'customer' },
+    'PRO-0121': { full_name: 'Bidfood Newcastle', email: 'contact@bidfoodnewcastle.co.uk', phone: '0370 3663 450', status: 'prospect', role: 'customer' },
+    'PRO-0122': { full_name: 'Reynolds Food Group', email: 'reynoldsfoodgroup@prospectus.invalid', status: 'prospect', role: 'customer' },
+    'PRO-0123': { full_name: 'JR Holland', email: 'jrholland@prospectus.invalid', status: 'prospect', role: 'customer' },
   }
   let customer = prospectusCustomers[customerId]
   if (!customer) {
