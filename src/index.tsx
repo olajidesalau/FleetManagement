@@ -195,8 +195,8 @@ app.post('/api/auth/register', async (c) => {
     }
     
     // Driver accounts use the existing provider-compatible user role plus a fleet driver record.
-    if (!['customer', 'provider', 'driver'].includes(role)) {
-      return c.json({ error: 'Invalid role. Choose customer, provider, or driver' }, 400)
+    if (!['customer', 'driver'].includes(role)) {
+      return c.json({ error: 'Invalid role. Choose customer or driver' }, 400)
     }
     if (role === 'driver' && (!licence_number || !licence_expiry)) {
       return c.json({ error: 'Driver licence number and expiry are required' }, 400)
@@ -341,7 +341,12 @@ app.get('/api/auth/me', authenticate, async (c) => {
       return c.json({ error: 'User not found' }, 404)
     }
     
-    // If provider, get provider profile
+    const driverRecord = profile.role === 'provider'
+      ? await c.env.DB.prepare('SELECT id FROM drivers WHERE user_id = ?').bind(user.userId).first()
+      : null
+    if (driverRecord) (profile as any).role = 'driver'
+
+    // Legacy provider profiles are retained for compatibility, but are not Fleet Management account types.
     if (profile.role === 'provider') {
       const providerProfile = await (c.env.DB as D1Database).prepare(`
         SELECT * FROM provider_profiles WHERE user_id = ?
@@ -380,7 +385,7 @@ app.get('/api/profile', authenticate, async (c) => {
         roleData = { profile_type: 'driver', ...driver, active_routes: Number(assigned?.count || 0) }
       } else {
         const provider = await c.env.DB.prepare(`SELECT id, business_name, approval_status, average_rating, total_bookings FROM provider_profiles WHERE user_id = ?`).bind(userId).first()
-        roleData = { profile_type: 'provider', ...(provider || {}) }
+        roleData = { profile_type: 'customer' }
       }
     } else {
       const routes = await c.env.DB.prepare(`SELECT COUNT(*) AS count FROM fleet_routes WHERE customer_id = ?`).bind(userId).first() as any

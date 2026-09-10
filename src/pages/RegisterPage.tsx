@@ -138,7 +138,6 @@ export const RegisterPage = () => {
                 <select name="role" required style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; background: white;">
                   <option value="">Select an option</option>
                   <option value="customer">Customer - manage delivery requirements</option>
-                  <option value="provider">Provider - manage services and bookings</option>
                   <option value="driver">Driver - accept and service routes</option>
                 </select>
               </div>

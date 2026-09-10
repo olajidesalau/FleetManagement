@@ -419,7 +419,7 @@
               ? [['Customer routes', data.route_count], ['Account type', 'Customer'], ['Delivery role', 'Affiliated customer']]
               : [['Business', data.business_name], ['Approval', data.approval_status], ['Rating', data.average_rating], ['Bookings', data.total_bookings]];
         roleData.innerHTML = cards.map(card => `<div><span>${escapeProfile(card[0])}</span><strong>${escapeProfile(card[1])}</strong></div>`).join('');
-        profilePage.querySelector('[data-profile-role-title]').textContent = type === 'admin' ? 'Admin profile' : type === 'driver' ? 'Driver profile' : type === 'customer' ? 'Customer profile' : 'Provider profile';
+        profilePage.querySelector('[data-profile-role-title]').textContent = type === 'admin' ? 'Fleet Manager / Admin profile' : type === 'driver' ? 'Driver profile' : 'Customer profile';
       };
 
       const loadProfile = async () => {
@@ -431,7 +431,8 @@
           const user = payload.user;
           profilePage.querySelector('[data-profile-initials]').textContent = user.full_name.split(/\s+/).map(name => name[0]).join('').slice(0, 2).toUpperCase();
           profilePage.querySelector('[data-profile-name]').textContent = user.full_name;
-          profilePage.querySelector('[data-profile-role]').textContent = `${user.role} account`;
+          const displayRole = user.role === 'admin' ? 'Fleet Manager / Admin' : user.role === 'driver' || user.role === 'provider' ? 'Driver Account' : 'Customer Account';
+          profilePage.querySelector('[data-profile-role]').textContent = displayRole;
           profilePage.querySelector('[data-profile-email]').textContent = user.email;
           profilePage.querySelector('[data-profile-phone]').textContent = user.phone || 'Not provided';
           profilePage.querySelector('[data-profile-created]').textContent = formatDate(user.created_at);
