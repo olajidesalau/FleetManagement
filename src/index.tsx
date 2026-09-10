@@ -2103,7 +2103,7 @@ app.get('/messages', authenticate, async (c) => {
   } catch (error: any) {
     console.error('Messages page data load failed:', error?.message || error)
   }
-  return c.render(<MessagesPage conversations={conversations} contacts={contacts} currentRole={currentRole} />)
+  return c.html(`<main class="fleet-dashboard"><h1>Messages</h1><p>${conversations.length} conversations and ${contacts.length} contacts available.</p></main>`)
 })
 
 app.get('/messages/new', authenticate, async (c) => {
