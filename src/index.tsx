@@ -101,8 +101,14 @@ async function authenticate(c: any, next: any) {
     }
     return c.json({ error: 'Invalid token' }, 401)
   }
-  
-  c.set('user', payload)
+
+  const account = await c.env.DB.prepare(`SELECT id, email, full_name, phone, role, status FROM users WHERE id = ?`).bind(payload.userId).first() as any
+  if (!account || account.status !== 'active') {
+    if (c.req.header('Accept')?.includes('text/html')) return c.redirect('/auth/login')
+    return c.json({ error: 'Account is inactive' }, 401)
+  }
+
+  c.set('user', { ...payload, userId: account.id, email: account.email, role: account.role, full_name: account.full_name })
   await next()
 }
 
@@ -321,7 +327,7 @@ app.get('/api/auth/me', authenticate, async (c) => {
       SELECT id, email, full_name, phone, role, status, email_verified, 
              phone_verified, created_at, last_login
       FROM users WHERE id = ?
-    `).bind(user.id).first()
+    `).bind(user.userId).first()
     
     if (!profile) {
       return c.json({ error: 'User not found' }, 404)
