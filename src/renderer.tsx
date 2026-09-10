@@ -1,5 +1,6 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { Navigation } from './components/Navigation'
+import { Footer } from './components/Footer'
 
 export const renderer = jsxRenderer(({ children }, c) => {
   const currentUser = c.get('user')
@@ -17,6 +18,7 @@ export const renderer = jsxRenderer(({ children }, c) => {
       <body>
         <Navigation currentUser={currentUser} />
         <main>{children}</main>
+        <Footer />
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/app.js"></script>
       </body>

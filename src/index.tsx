@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import type { D1Database } from '@cloudflare/workers-types'
-import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, CustomerDetailPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, VehicleEditPage, VehicleDetailPage, DriverFormPage, DriverEditPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage } from './pages'
+import { HomePage, ProvidersSearchPage, LoginPage, RegisterPage, RoutesPage, RouteDetailPage, VehiclesPage, TemperaturePage, AlertsPage, MonitoringPage, DriversPage, AdminDriversPage, CustomersPage, CustomerDetailPage, RouteScanPage, TrafficPage, ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, VehicleEditPage, VehicleDetailPage, DriverFormPage, DriverEditPage, DriverDetailPage, CustomerFormPage, ProfilePage, AdminDashboardPage, AdminUsersPage, AdminProvidersPage, AdminBookingsPage, BookingsPage, NotificationsPage, PolicyPage } from './pages'
 import { renderer } from './renderer' 
 
 type Bindings = {
@@ -36,6 +36,8 @@ function isPublicRequest(path: string): boolean {
   return path === '/'
     || path === '/auth/login'
     || path === '/auth/register'
+    || path === '/privacy-policy'
+    || path === '/terms-conditions'
     || path === '/api/auth/login'
     || path === '/api/auth/register'
     || path === '/api/auth/logout'
@@ -2059,6 +2061,20 @@ app.get('/auth/login', (c) => {
 app.get('/auth/register', (c) => {
   return c.render(<RegisterPage />)
 })
+
+app.get('/privacy-policy', (c) => c.render(<PolicyPage eyebrow="Privacy" title="Privacy Policy" sections={[
+  { title: 'Information we collect', paragraphs: ['We collect account, contact, route, delivery, vehicle, driver, alert, and message information needed to operate Snow Fleet Management.'] },
+  { title: 'How we use information', paragraphs: ['We use information to authenticate users, coordinate fleet operations, manage deliveries, communicate with authorised users, prevent misuse, and improve platform reliability.'] },
+  { title: 'Your choices', paragraphs: ['You may request access to, correction of, or deletion of personal information where applicable. Contact privacy@snowfleetmanagement.uk for privacy requests.'] },
+  { title: 'Security and retention', paragraphs: ['We apply reasonable technical and organisational safeguards and retain records only as long as needed for operations, legal obligations, disputes, and security.'] },
+]} />))
+
+app.get('/terms-conditions', (c) => c.render(<PolicyPage eyebrow="Legal" title="Terms & Conditions" sections={[
+  { title: 'Platform role', paragraphs: ['Snow Fleet Management provides an operations portal for authorised fleet managers, drivers, customers, and related operational users.'] },
+  { title: 'Account responsibilities', paragraphs: ['Users must provide accurate information, protect their credentials, and use the platform lawfully. Administrative access is provisioned and may not be shared.'] },
+  { title: 'Fleet operations', paragraphs: ['Routes, vehicle information, driver records, delivery evidence, temperature readings, alerts, and messages must be used for legitimate fleet operations.'] },
+  { title: 'Suspension and contact', paragraphs: ['Access may be restricted for misuse, security risk, inaccurate information, or breach of these terms. Questions can be sent to support@snowfleetmanagement.uk.'] },
+]} />))
 
 // Provider search (renders search page with data)
 app.get('/providers/search', async (c) => {

@@ -18,3 +18,4 @@ export { ManagementPage, MonitoringExportPage, RouteFormPage, VehicleFormPage, V
 export { ProfilePage } from './ProfilePage'
 export { DeliveryPage } from './DeliveryPage'
 export { CustomerDetailPage } from './CustomerDetailPage'
+export { PolicyPage } from './PolicyPage'

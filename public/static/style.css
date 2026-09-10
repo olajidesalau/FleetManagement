@@ -14,6 +14,17 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--canvas); color: var(--ink); font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
 a { color: inherit; }
+.site-footer { margin-top: auto; border-top: 1px solid var(--line); background: #eaf2f0; color: var(--muted); font-size: 11px; }
+.site-footer-inner { max-width: 1440px; margin: 0 auto; padding: 18px 4.5vw; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
+.site-footer a { color: var(--teal); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+.policy-page { min-height: calc(100vh - 160px); }
+.policy-panel { max-width: 900px; margin: 0 auto; padding: 30px; }
+.policy-panel article + article { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.policy-panel h2 { margin: 0 0 10px; font-size: 21px; }
+.policy-panel p { max-width: 760px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+@media (max-width: 600px) { .site-footer-inner { align-items: flex-start; flex-direction: column; } }
 .login-page { min-height: 100vh; display: grid; place-items: center; padding: 48px 20px; background-color: #17383b; background-image: radial-gradient(circle at 15% 20%, rgba(217,240,106,.16) 0 2px, transparent 3px), radial-gradient(circle at 78% 32%, rgba(143,212,202,.14) 0 1px, transparent 2px), linear-gradient(135deg, rgba(255,255,255,.06), transparent 45%), repeating-linear-gradient(115deg, rgba(217,240,106,.06) 0 1px, transparent 1px 13px); background-size: 31px 31px, 43px 43px, auto, auto; }
 .public-home { min-height: calc(100vh - 76px); padding: clamp(45px, 9vw, 110px) 7vw; background: linear-gradient(135deg, #f3f6f5 0%, #e5f1ef 52%, #f8faf9 100%); }
 .public-home-hero { max-width: 760px; }
