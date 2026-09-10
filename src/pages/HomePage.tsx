@@ -5,6 +5,26 @@ const routes = [
 ]
 
 export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
+  if (!currentUser) {
+    return (
+      <div class="public-home">
+        <section class="public-home-hero">
+          <p class="eyebrow">Snow Fleet Management</p>
+          <h1>Coordinate every delivery with confidence.</h1>
+          <p>One secure workspace for routes, vehicles, drivers, temperature-sensitive freight, and customer communication.</p>
+          <div class="public-home-actions">
+            <a class="button button-primary" href="/auth/login">Login</a>
+            <a class="button button-secondary" href="/auth/register">Create an account</a>
+          </div>
+        </section>
+        <section class="public-home-points" aria-label="Platform capabilities">
+          <article><strong>Fleet visibility</strong><span>See routes, vehicles, and cold-chain status in one place.</span></article>
+          <article><strong>Secure communication</strong><span>Keep driver, customer, and operations conversations together.</span></article>
+          <article><strong>Operational control</strong><span>Manage delivery evidence, alerts, and driver information securely.</span></article>
+        </section>
+      </div>
+    )
+  }
   const firstName = currentUser?.full_name?.trim().split(/\s+/)[0] || 'Fleet Manager'
   const greeting = `Welcome back, ${firstName}`
   return (

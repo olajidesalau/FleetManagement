@@ -46,6 +46,8 @@
 
   // Navigation updates
   function renderLoggedOutUser(userSection) {
+    const mainLinksContainer = document.querySelector('.primary-nav');
+    if (mainLinksContainer) mainLinksContainer.innerHTML = '<a class="active" href="/">Home</a>';
     userSection.innerHTML = '';
     const loginLink = document.createElement('a');
     loginLink.href = '/auth/login';

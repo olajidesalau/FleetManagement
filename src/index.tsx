@@ -32,6 +32,22 @@ const app = new Hono<HonoEnv>()
 app.use('/api/*', cors())
 app.use('*', renderer)
 
+function isPublicRequest(path: string): boolean {
+  return path === '/'
+    || path === '/auth/login'
+    || path === '/auth/register'
+    || path === '/api/auth/login'
+    || path === '/api/auth/register'
+    || path === '/api/auth/logout'
+    || path.startsWith('/static/')
+    || path === '/favicon.ico'
+}
+
+app.use('*', async (c, next) => {
+  if (isPublicRequest(new URL(c.req.url).pathname) || c.req.method === 'OPTIONS') return next()
+  return authenticate(c, next)
+})
+
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
@@ -1736,9 +1752,14 @@ app.post('/notifications/:notificationId/read', (c) => c.redirect('/notification
 // Serve the main page
 app.get('/', async (c) => {
   const authHeader = c.req.header('Authorization')
+  const cookieHeader = c.req.header('Cookie') || ''
+  const sessionCookie = cookieHeader.split(';').map((part: string) => part.trim()).find((part: string) => part.startsWith('snow_session='))
+  const sessionToken = authHeader?.startsWith('Bearer ')
+    ? authHeader.substring(7)
+    : sessionCookie?.substring('snow_session='.length)
   let currentUser: any = undefined
-  if (authHeader?.startsWith('Bearer ')) {
-    const session = decodeJWT(authHeader.substring(7))
+  if (sessionToken) {
+    const session = decodeJWT(sessionToken)
     if (session?.userId) currentUser = await c.env.DB.prepare('SELECT id, full_name, email, role FROM users WHERE id = ?').bind(session.userId).first()
   }
   return c.render(<HomePage currentUser={currentUser} />)
