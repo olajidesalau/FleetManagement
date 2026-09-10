@@ -1,7 +1,8 @@
 import { jsxRenderer } from 'hono/jsx-renderer'
 import { Navigation } from './components/Navigation'
 
-export const renderer = jsxRenderer(({ children }) => {
+export const renderer = jsxRenderer(({ children }, c) => {
+  const currentUser = c.get('user')
   return (
     <html>
       <head>
@@ -14,7 +15,7 @@ export const renderer = jsxRenderer(({ children }) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
       </head>
       <body>
-        <Navigation />
+        <Navigation currentUser={currentUser} />
         <main>{children}</main>
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/app.js"></script>

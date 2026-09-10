@@ -1,4 +1,6 @@
 export const Navigation = ({ currentUser }: { currentUser?: any } = {}) => {
+  const normalizedRole = String(currentUser?.role || '').trim().toLowerCase().replace(/\s+/g, '_')
+  const canAccessAdmin = ['admin', 'fleet_manager'].includes(normalizedRole)
   return (
     <nav class="topbar">
       <div class="nav-shell">
@@ -18,6 +20,7 @@ export const Navigation = ({ currentUser }: { currentUser?: any } = {}) => {
             <a href="/monitoring">Monitoring</a>
             <a href="/traffic">Traffic</a>
             <a href="/messages">Messages</a>
+            {canAccessAdmin && <a href="/admin/dashboard">Admin</a>}
           </> : <a class="active" href="/">Home</a>}
         </div>
         <div class="user-menu">
