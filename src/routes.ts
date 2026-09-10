@@ -34,13 +34,13 @@ export const ROUTES: RouteConfig[] = [
   { path: '/notifications', method: 'GET', label: 'Notifications', requiresAuth: true },
 
   // Admin routes
-  { path: '/admin/dashboard', method: 'GET', label: 'Admin Dashboard', requiresAuth: true, roles: ['admin'] },
-  { path: '/admin/users', method: 'GET', label: 'Manage Users', requiresAuth: true, roles: ['admin'] },
-  { path: '/admin/users/:userId', method: 'GET', label: 'User Details', requiresAuth: true, roles: ['admin'] },
-  { path: '/admin/providers', method: 'GET', label: 'Provider Management', requiresAuth: true, roles: ['admin'] },
-  { path: '/admin/providers/:providerId', method: 'GET', label: 'Provider Details', requiresAuth: true, roles: ['admin'] },
-  { path: '/admin/bookings', method: 'GET', label: 'All Bookings', requiresAuth: true, roles: ['admin'] },
-  { path: '/admin/stats', method: 'GET', label: 'Statistics', requiresAuth: true, roles: ['admin'] },
+  { path: '/admin/dashboard', method: 'GET', label: 'Admin Dashboard', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/users', method: 'GET', label: 'Manage Users', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/users/:userId', method: 'GET', label: 'User Details', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/providers', method: 'GET', label: 'Provider Management', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/providers/:providerId', method: 'GET', label: 'Provider Details', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/bookings', method: 'GET', label: 'All Bookings', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/stats', method: 'GET', label: 'Statistics', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
 ]
 
 // Navigation links by role
@@ -81,6 +81,8 @@ export const getNavLinks = (role?: string) => {
     case 'provider':
       return providerLinks
     case 'admin':
+    case 'fleet_manager':
+    case 'Fleet Manager':
       return adminLinks
     default:
       return baseLinks

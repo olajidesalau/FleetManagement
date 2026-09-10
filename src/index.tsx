@@ -1202,9 +1202,10 @@ app.get('/api/messages/conversation/:conversationId', authenticate, async (c) =>
   try {
     const user = c.get('user') as any
     const conversationId = c.req.param('conversationId')
+    const participants = conversationId.split('-').map(Number)
     
     // Verify user is part of conversation
-    if (!conversationId.includes(user.userId.toString())) {
+    if (participants.length !== 2 || participants.some(id => !Number.isInteger(id) || id <= 0) || !participants.includes(Number(user.userId))) {
       return c.json({ error: 'Access denied' }, 403)
     }
     
@@ -2078,10 +2079,10 @@ app.get('/messages', authenticate, async (c) => {
 
     const contacts = await c.env.DB.prepare(`
       SELECT u.id, u.full_name, u.email,
-        CASE WHEN u.role = 'admin' THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role = 'customer' THEN 'customer' ELSE u.role END AS contact_role,
+        CASE WHEN u.role IN ('admin', 'fleet_manager', 'Fleet Manager') THEN 'admin' WHEN d.id IS NOT NULL THEN 'driver' WHEN u.role = 'customer' THEN 'customer' ELSE u.role END AS contact_role,
         d.driver_reference
       FROM users u LEFT JOIN drivers d ON d.user_id = u.id
-      WHERE u.id != ? AND u.status = 'active' AND (u.role IN ('admin', 'customer') OR d.id IS NOT NULL)
+      WHERE u.id != ? AND u.status = 'active' AND (u.role IN ('admin', 'fleet_manager', 'Fleet Manager', 'customer') OR d.id IS NOT NULL)
       ORDER BY contact_role, u.full_name
     `).bind(user.userId).all()
     const current = await c.env.DB.prepare('SELECT role FROM users WHERE id = ?').bind(user.userId).first() as any
@@ -2112,8 +2113,9 @@ app.get('/messages/conversation/:conversationId', authenticate, async (c) => {
   try {
     const user = c.get('user') as any
     const conversationId = c.req.param('conversationId')
+    const participants = conversationId.split('-').map(Number)
 
-    if (!conversationId.includes(user.userId.toString())) {
+    if (participants.length !== 2 || participants.some(id => !Number.isInteger(id) || id <= 0) || !participants.includes(Number(user.userId))) {
       return c.json({ error: 'Access denied' }, 403)
     }
 
@@ -2126,8 +2128,7 @@ app.get('/messages/conversation/:conversationId', authenticate, async (c) => {
     `).bind(conversationId).all()
 
     // determine other user
-    const parts = conversationId.split('-')
-    const otherId = parts.find((p: string) => p !== String(user.userId))
+    const otherId = participants.find(id => id !== Number(user.userId))
     const otherUser = await (c.env.DB as D1Database).prepare('SELECT id, full_name, email FROM users WHERE id = ?').bind(otherId).first()
 
     return c.render(<ConversationPage conversation={{ conversation_id: conversationId, other_user: otherUser }} messages={msgs.results} />)
