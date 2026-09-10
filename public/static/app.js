@@ -84,9 +84,10 @@
     logoutLink.addEventListener('click', (e) => {
       e.preventDefault();
       clearToken();
-      renderLoggedOutUser(userSection);
-      // small UX: reload to let server-side pages reflect auth if needed
-      window.location.href = '/';
+      axios.post('/api/auth/logout').finally(() => {
+        renderLoggedOutUser(userSection);
+        window.location.href = '/';
+      });
     });
 
     userSection.appendChild(emailSpan);

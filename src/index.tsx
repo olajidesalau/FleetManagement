@@ -64,14 +64,19 @@ function hashPassword(password: string): string {
 // Middleware: Authenticate JWT token
 async function authenticate(c: any, next: any) {
   const authHeader = c.req.header('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const cookieHeader = c.req.header('Cookie') || ''
+  const sessionCookie = cookieHeader.split(';').map((part: string) => part.trim()).find((part: string) => part.startsWith('snow_session='))
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.substring(7)
+    : sessionCookie?.substring('snow_session='.length)
+
+  if (!token) {
     if (c.req.header('Accept')?.includes('text/html')) {
       return c.redirect('/auth/login')
     }
     return c.json({ error: 'Unauthorized' }, 401)
   }
   
-  const token = authHeader.substring(7)
   const payload = decodeJWT(token)
   
   if (!payload || !payload.userId) {
@@ -263,6 +268,7 @@ app.post('/api/auth/login', async (c) => {
       email: user.email, 
       role: user.role 
     }, 'your-secret-key')
+    c.header('Set-Cookie', `snow_session=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=86400`)
     
     return c.json({ 
       success: true, 
@@ -278,6 +284,11 @@ app.post('/api/auth/login', async (c) => {
   } catch (error: any) {
     return c.json({ error: 'Login failed: ' + error.message }, 500)
   }
+})
+
+app.post('/api/auth/logout', (c) => {
+  c.header('Set-Cookie', 'snow_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
+  return c.json({ success: true })
 })
 
 // Get current user profile
