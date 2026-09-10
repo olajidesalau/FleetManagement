@@ -15,6 +15,16 @@ export const ROUTES: RouteConfig[] = [
   { path: '/auth/login', method: 'GET', label: 'Login' },
   { path: '/auth/register', method: 'GET', label: 'Register' },
 
+  // Authenticated fleet services
+  { path: '/routes', method: 'GET', label: 'Routes', requiresAuth: true },
+  { path: '/vehicles', method: 'GET', label: 'Vehicles', requiresAuth: true },
+  { path: '/temperature', method: 'GET', label: 'Temperature', requiresAuth: true },
+  { path: '/drivers', method: 'GET', label: 'Drivers', requiresAuth: true },
+  { path: '/customers', method: 'GET', label: 'Customers', requiresAuth: true },
+  { path: '/alerts', method: 'GET', label: 'Alerts', requiresAuth: true },
+  { path: '/monitoring', method: 'GET', label: 'Monitoring', requiresAuth: true },
+  { path: '/traffic', method: 'GET', label: 'Traffic', requiresAuth: true },
+
   // Provider routes
   { path: '/providers/search', method: 'GET', label: 'Search Providers' },
   { path: '/providers/:userId', method: 'GET', label: 'Provider Profile' },
@@ -29,6 +39,7 @@ export const ROUTES: RouteConfig[] = [
   // Messaging
   { path: '/messages', method: 'GET', label: 'Messages', requiresAuth: true },
   { path: '/messages/conversation/:id', method: 'GET', label: 'Conversation', requiresAuth: true },
+  { path: '/messages/new', method: 'GET', label: 'New Conversation', requiresAuth: true },
 
   // Notifications
   { path: '/notifications', method: 'GET', label: 'Notifications', requiresAuth: true },
@@ -41,6 +52,8 @@ export const ROUTES: RouteConfig[] = [
   { path: '/admin/providers/:providerId', method: 'GET', label: 'Provider Details', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
   { path: '/admin/bookings', method: 'GET', label: 'All Bookings', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
   { path: '/admin/stats', method: 'GET', label: 'Statistics', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/admin/drivers', method: 'GET', label: 'Registered Drivers', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
+  { path: '/drivers/:driverId/edit', method: 'GET', label: 'Edit Driver', requiresAuth: true, roles: ['admin', 'fleet_manager', 'Fleet Manager'] },
 ]
 
 // Navigation links by role
