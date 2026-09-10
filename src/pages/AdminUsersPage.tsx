@@ -63,7 +63,7 @@ export const AdminUsersPage = ({ users = [] }: { users?: any[] } = {}) => {
                     <td style="padding: 1rem;">{user.email}</td>
                     <td style="padding: 1rem;">{user.full_name}</td>
                     <td style="padding: 1rem;">
-                      <span style={`background: ${['admin', 'Fleet Manager'].includes(user.role) ? '#9c27b0' : user.role === 'provider' ? '#4caf50' : '#2196f3'}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;`}>
+                      <span style={`background: ${['admin', 'fleet_manager', 'Fleet Manager'].includes(String(user.role || '').trim()) ? '#9c27b0' : user.role === 'provider' ? '#4caf50' : '#2196f3'}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem;`}>
                         {user.role}
                       </span>
                     </td>

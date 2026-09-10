@@ -109,14 +109,18 @@
       admin: [
         { href: '/admin/dashboard', label: 'Admin' }
       ],
+      fleet_manager: [
+        { href: '/admin/dashboard', label: 'Admin' }
+      ],
       'Fleet Manager': [
         { href: '/admin/dashboard', label: 'Admin' }
       ]
     }
 
-    const role = user.role || 'customer';
+    const role = String(user.role || 'customer').trim();
+    const isAdminRole = ['admin', 'fleet_manager', 'Fleet Manager'].includes(role);
     document.querySelectorAll('[data-admin-only]').forEach(element => {
-      element.hidden = !['admin', 'Fleet Manager'].includes(role);
+      element.hidden = !isAdminRole;
     });
     const roleLinks = linksByRole[role] || [];
     roleLinks.forEach(l => {
@@ -190,7 +194,7 @@
         // Send each registered profile to its operational starting page.
         if (user && (user.role === 'provider' || user.role === 'driver')) {
           window.location.href = '/providers/profile';
-        } else if (user && ['admin', 'Fleet Manager'].includes(user.role)) {
+        } else if (user && ['admin', 'fleet_manager', 'Fleet Manager'].includes(user.role)) {
           window.location.href = '/admin/dashboard';
         } else {
           window.location.href = '/';
