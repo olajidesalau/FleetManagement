@@ -27,6 +27,8 @@ export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
   }
   const firstName = currentUser?.full_name?.trim().split(/\s+/)[0] || 'Fleet Manager'
   const greeting = `Welcome back, ${firstName}`
+  const normalizedRole = String(currentUser?.role || '').trim().toLowerCase().replace(/\s+/g, '_')
+  const canAllocateRoutes = ['admin', 'fleet_manager'].includes(normalizedRole)
   return (
     <div class="fleet-dashboard">
       <section class="dashboard-header">
@@ -38,7 +40,7 @@ export const HomePage = ({ currentUser }: { currentUser?: any } = {}) => {
         </div>
         <div class="header-actions">
           <span class="sync-status"><span class="status-dot status-dot-live"></span>Live data · <span data-current-time>--:--</span></span>
-          <a class="button button-primary" href="/routes/new">+ Allocate route</a>
+          {canAllocateRoutes && <a class="button button-primary" href="/routes/new">+ Allocate route</a>}
         </div>
       </section>
 

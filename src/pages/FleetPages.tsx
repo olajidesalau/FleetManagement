@@ -13,12 +13,16 @@ const vehicles = [
   { id: 'SN-05', type: 'Refrigerated van', driver: 'Owen Hughes', temperature: '3.4 C', range: 'Within range', status: 'Available', mileage: '29,440 mi' },
 ]
 
-export const RoutesPage = () => (
+export const RoutesPage = ({ currentUser }: { currentUser?: any } = {}) => {
+  const normalizedRole = String(currentUser?.role || '').trim().toLowerCase().replace(/\s+/g, '_')
+  const canAllocateRoutes = ['admin', 'fleet_manager'].includes(normalizedRole)
+  return (
   <div class="fleet-dashboard">
-    <div class="page-heading"><div><p class="eyebrow">Fleet management</p><h1>Routes</h1><p class="header-copy">Allocate work, follow delivery progress, and respond to route disruption.</p></div><div class="header-actions"><a class="button button-secondary" href="/routes/scan">Scan for routes</a><a class="button button-primary" href="/routes/new">+ Allocate route</a></div></div>
+    <div class="page-heading"><div><p class="eyebrow">Fleet management</p><h1>Routes</h1><p class="header-copy">Allocate work, follow delivery progress, and respond to route disruption.</p></div><div class="header-actions">{canAllocateRoutes && <><a class="button button-secondary" href="/routes/scan">Scan for routes</a><a class="button button-primary" href="/routes/new">+ Allocate route</a></>}</div></div>
     <section class="panel table-panel"><div class="panel-heading"><div><h2>Today's delivery routes</h2><p class="table-caption">4 routes currently scheduled across the network</p></div><a class="text-link" href="/alerts">View route alerts <span>â†’</span></a></div><div class="fleet-table-wrap"><table class="fleet-table"><thead><tr><th>Route</th><th>Customer</th><th>Driver / vehicle</th><th>Progress</th><th>ETA</th><th>Status</th></tr></thead><tbody>{fleetRoutes.map(route => <tr><td><a href={`/routes/${route.id}`} class="table-id">{route.id}</a><span>{route.origin} <b>â†’</b> {route.destination}</span></td><td>{route.customer}</td><td>{route.driver}<span>{route.vehicle}</span></td><td><div class="table-progress"><span style={`width: ${route.progress}`}></span></div><small>{route.progress}</small></td><td>{route.eta}<span>Departs {route.departure}</span></td><td><span class={`pill ${route.status === 'On route' ? 'pill-green' : route.status === 'Loading' ? 'pill-amber' : 'pill-neutral'}`}>{route.status}</span></td></tr>)}</tbody></table></div></section>
   </div>
   )
+}
 
 export const RouteDetailPage = ({ routeId }: { routeId: string }) => {
   const route = fleetRoutes.find(candidate => candidate.id.toLowerCase() === routeId.toLowerCase()) || fleetRoutes[0]

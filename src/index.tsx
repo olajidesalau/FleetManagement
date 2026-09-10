@@ -1800,7 +1800,7 @@ app.get('/', async (c) => {
 })
 
 // Fleet management pages
-app.get('/routes', (c) => c.render(<RoutesPage />))
+app.get('/routes', (c) => c.render(<RoutesPage currentUser={c.get('user')} />))
 app.get('/vehicles', async (c) => {
   const vehicles = await c.env.DB.prepare(`SELECT v.id, v.vehicle_reference, v.vehicle_type, v.mileage, v.status, v.current_temperature, v.target_temperature_min, v.target_temperature_max, u.full_name AS driver_name FROM vehicles v LEFT JOIN drivers d ON d.id = (SELECT driver_id FROM fleet_routes WHERE vehicle_id = v.id AND status NOT IN ('delivered', 'cancelled') ORDER BY scheduled_departure DESC LIMIT 1) LEFT JOIN users u ON u.id = d.user_id ORDER BY v.vehicle_reference`).all()
   return c.render(<VehiclesPage vehicles={(vehicles.results as any[]) || []} />)
@@ -1824,7 +1824,7 @@ app.get('/admin/drivers', authenticate, requireAdmin(), async (c) => {
 })
 app.get('/customers', (c) => c.render(<CustomersPage currentUser={c.get('user')} />))
 app.get('/routes/scan', (c) => c.render(<RouteScanPage />))
-app.get('/routes/new', async (c) => {
+app.get('/routes/new', authenticate, requireAdmin(), async (c) => {
   const customers = await c.env.DB.prepare(`SELECT id, full_name, status FROM users WHERE role = 'customer' ORDER BY full_name`).all()
   return c.render(<RouteFormPage customers={customers.results} />)
 })
