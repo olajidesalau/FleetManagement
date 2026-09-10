@@ -462,18 +462,19 @@
       const renderTemperatures = async () => {
         refreshButton.disabled = true;
         try {
-          const response = await fetch('/api/fleet/temperature');
+          const response = await fetch('/api/fleet/temperature', token ? { headers: { Authorization: 'Bearer ' + token } } : {});
           if (!response.ok) throw new Error('Temperature readings unavailable');
           const payload = await response.json();
-          const readings = payload.readings || [];
-          const within = readings.filter(reading => Number(reading.current_temperature) >= Number(reading.target_temperature_min ?? 2) && Number(reading.current_temperature) <= Number(reading.target_temperature_max ?? 8));
-          const alerts = readings.length - within.length;
-          const average = readings.length ? (readings.reduce((total, reading) => total + Number(reading.current_temperature || 0), 0) / readings.length).toFixed(1) : '--';
-          temperaturePage.querySelector('[data-temperature-within]').textContent = `${within.length} / ${readings.length}`;
-          temperaturePage.querySelector('[data-temperature-alerts]').textContent = alerts;
+          const readings = Array.isArray(payload.readings) ? payload.readings : [];
+          const measured = readings.filter(reading => Number.isFinite(Number(reading.current_temperature)));
+          const within = measured.filter(reading => Number(reading.current_temperature) >= Number(reading.target_temperature_min ?? 2) && Number(reading.current_temperature) <= Number(reading.target_temperature_max ?? 8));
+          const alerts = measured.length - within.length;
+          const average = measured.length ? (measured.reduce((total, reading) => total + Number(reading.current_temperature), 0) / measured.length).toFixed(1) : '--';
+          temperaturePage.querySelector('[data-temperature-within]').textContent = measured.length ? `${within.length} / ${measured.length}` : '--';
+          temperaturePage.querySelector('[data-temperature-alerts]').textContent = measured.length ? alerts : '--';
           temperaturePage.querySelector('[data-temperature-average]').textContent = average === '--' ? '--' : `${average} C`;
-          temperaturePage.querySelector('[data-temperature-online]').textContent = readings.length;
-          rows.innerHTML = readings.map(reading => { const temp = Number(reading.current_temperature); const min = Number(reading.target_temperature_min ?? 2); const max = Number(reading.target_temperature_max ?? 8); const ok = temp >= min && temp <= max; return `<tr><td><strong class="table-id">${reading.vehicle_reference}</strong><span>Temperature-controlled vehicle</span></td><td>${reading.driver_name || 'Unassigned'}</td><td><strong class="${ok ? 'text-good' : 'text-alert'}">${temp.toFixed(1)} C</strong><span>${ok ? 'Within range' : 'Outside target range'}</span></td><td>${min} C to ${max} C</td><td><span class="pill pill-green">${reading.sensor_status || 'online'}</span></td><td><span class="pill ${ok ? 'pill-green' : 'pill-red'}">${ok ? 'Normal' : 'Alert'}</span></td></tr>` }).join('');
+          temperaturePage.querySelector('[data-temperature-online]').textContent = measured.length;
+          rows.innerHTML = readings.length ? readings.map(reading => { const hasTemp = Number.isFinite(Number(reading.current_temperature)); const temp = Number(reading.current_temperature); const min = Number(reading.target_temperature_min ?? 2); const max = Number(reading.target_temperature_max ?? 8); const ok = hasTemp && temp >= min && temp <= max; return `<tr><td><strong class="table-id">${reading.vehicle_reference}</strong><span>Temperature-controlled vehicle</span></td><td>${reading.driver_name || 'Unassigned'}</td><td><strong class="${!hasTemp ? '' : ok ? 'text-good' : 'text-alert'}">${hasTemp ? `${temp.toFixed(1)} C` : 'N/A'}</strong><span>${!hasTemp ? 'No sensor reading' : ok ? 'Within range' : 'Outside target range'}</span></td><td>${min} C to ${max} C</td><td><span class="pill ${hasTemp ? 'pill-green' : 'pill-neutral'}">${hasTemp ? (reading.sensor_status || 'online') : 'offline'}</span></td><td><span class="pill ${!hasTemp ? 'pill-neutral' : ok ? 'pill-green' : 'pill-red'}">${!hasTemp ? 'Unavailable' : ok ? 'Normal' : 'Alert'}</span></td></tr>` }).join('') : '<tr><td colspan="6" class="table-loading">No temperature-controlled vehicles found.</td></tr>';
           updated.textContent = `Updated ${formatOperationalTime(new Date())}`;
         } catch { rows.innerHTML = '<tr><td colspan="6" class="table-loading">Temperature readings are temporarily unavailable.</td></tr>'; updated.textContent = 'Monitor unavailable'; }
         finally { refreshButton.disabled = false; }
